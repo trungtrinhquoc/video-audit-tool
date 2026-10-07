@@ -1,0 +1,3742 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Time Study Tool - Phân Tích Chu Kỳ Thao Tác</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --border: #cbd5e1;
+      --border-light: #e2e8f0;
+
+      --text-main: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-hover: #1d4ed8;
+
+      --success: #059669;
+      --success-hover: #047857;
+
+      --warning-bg: #fefce8;
+      --warning-border: #fef08a;
+      --warning-text: #854d0e;
+
+      --excel-yellow: #fef9c3;
+      --excel-header: #f1f5f9;
+      --active-step-bg: #eff6ff;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 12.5px;
+    }
+
+    /* 1. Header Tối Giản */
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 46px;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: #fff;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      font-family: var(--font-sans);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      color: var(--text-main);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      color: #ffffff;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #ffffff;
+      border-color: var(--success);
+    }
+
+    .btn-success:hover {
+      background: var(--success-hover);
+      color: #ffffff;
+    }
+
+    /* Huy hiệu trạng thái Tự Động Lưu */
+    .save-status-pill {
+      font-size: 11px;
+      font-weight: 600;
+      color: #059669;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 3px 9px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .save-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    /* 2. KHU VỰC TRÊN (TOP): VIDEO RỘNG MỞ & ĐIỀU KHIỂN GỌN GÀNG */
+    .top-panel {
+      height: 48vh;
+      min-height: 180px;
+      background: #ffffff;
+      display: flex;
+      padding: 10px 16px;
+      gap: 0;
+      flex-shrink: 0;
+    }
+
+    /* Khung Video chiếm phần lớn chiều ngang */
+    .video-viewport {
+      flex: 1;
+      min-width: 300px;
+      background: #090d16;
+      border-radius: var(--radius-md);
+      border: 1px solid #1e293b;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Thanh Kéo Dọc Phân Chia Độ Rộng Giữa Video & Cột Điều Khiển (Video Resizer) */
+    .video-resizer {
+      width: 12px;
+      margin: 0 4px;
+      cursor: col-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 20;
+      user-select: none;
+      border-radius: 4px;
+      transition: background 0.15s ease;
+    }
+
+    .video-resizer:hover,
+    .video-resizer.is-dragging {
+      background: #eff6ff;
+    }
+
+    .video-resizer-handle {
+      width: 4px;
+      height: 48px;
+      background: #94a3b8;
+      border-radius: 2px;
+      transition: all 0.15s ease;
+    }
+
+    .video-resizer:hover .video-resizer-handle,
+    .video-resizer.is-dragging .video-resizer-handle {
+      background: #2563eb;
+      width: 5px;
+      height: 72px;
+      box-shadow: 0 0 6px rgba(37, 99, 235, 0.45);
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* Lớp Phủ HUD Trực Tiếp Trên Màn Hình Video (Hiển thị 2 nội dung: Tên bước & Mốc dừng) */
+    .video-step-hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      padding: 9px 13px;
+      max-width: 480px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .video-step-hud:hover {
+      background: rgba(15, 23, 42, 0.94);
+      border-color: rgba(59, 130, 246, 0.6);
+    }
+
+    .hud-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+
+    .hud-badges {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .hud-badge-step {
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+
+    .hud-badge-cycle {
+      background: #334155;
+      color: #e2e8f0;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .hud-toggle-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: all 0.15s ease;
+    }
+
+    .hud-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    .video-step-hud.collapsed .hud-body {
+      display: none;
+    }
+
+    .video-step-hud.collapsed {
+      padding: 4px 8px;
+      opacity: 0.65;
+    }
+
+    .video-step-hud.collapsed:hover {
+      opacity: 1;
+    }
+
+    .hud-process {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.35;
+      margin-bottom: 5px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .hud-measuring {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #fde047;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 3px 8px;
+      border-radius: 5px;
+      border-left: 3px solid #eab308;
+    }
+
+    .hud-measuring-label {
+      color: #cbd5e1;
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .hud-measuring-val {
+      color: #fef08a;
+      font-weight: 700;
+    }
+
+    .video-empty {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #94a3b8;
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px dashed #334155;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.75);
+      transition: all 0.2s ease;
+      max-width: 440px;
+      width: 85%;
+      z-index: 5;
+    }
+
+    .video-empty:hover {
+      border-color: #3b82f6;
+      background: rgba(30, 41, 59, 0.9);
+      color: #f1f5f9;
+      transform: translate(-50%, -52%);
+    }
+
+    .video-empty svg {
+      width: 46px;
+      height: 46px;
+      margin-bottom: 10px;
+      stroke: #3b82f6;
+      transition: transform 0.2s ease;
+    }
+
+    .video-empty:hover svg {
+      transform: scale(1.1);
+    }
+
+    /* Cột Điều Khiển Gọn Gàng Phía Phải (Bề rộng mặc định 340px) */
+    .controls-sidebar {
+      width: 340px;
+      min-width: 250px;
+      max-width: 650px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 7px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    /* 1. Thẻ Bước Đang Đo */
+    .step-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+
+    .step-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pill-step {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    .pill-cycle {
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    .step-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.35;
+      min-height: 20px;
+    }
+
+    .measuring-pill {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+      font-size: 11.5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 1.1. Thẻ Bảng Dữ Liệu Bước Hiện Tại (Nhận xét, L, ti, F) Đồng Bộ Excel */
+    .step-values-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+      position: relative;
+      z-index: 50;
+    }
+
+    .values-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+
+    .values-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #334155;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .values-title .cy-highlight {
+      color: #2563eb;
+    }
+
+    .values-status-badge {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #059669;
+      background: #ecfdf5;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid #a7f3d0;
+    }
+
+    .values-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-return-measuring {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-return-measuring:hover {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    /* Đánh dấu các ô đang được xem trên bảng Excel */
+    .cell-inspected {
+      outline: 2px solid #2563eb !important;
+      outline-offset: -2px !important;
+      background: #e0f2fe !important;
+    }
+
+    .values-mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 11.5px;
+      background: #ffffff;
+    }
+
+    .values-mini-table tr {
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .values-mini-table tr:last-child {
+      border-bottom: none;
+    }
+
+    .v-label {
+      width: 80px;
+      background: #f8fafc;
+      padding: 4px 8px;
+      font-weight: 700;
+      color: #334155;
+      border-right: 1px solid #cbd5e1;
+      user-select: none;
+      white-space: nowrap;
+      font-size: 11.5px;
+    }
+
+    .v-label-ti {
+      color: #0369a1;
+    }
+
+    .v-label-f {
+      color: #15803d;
+    }
+
+    .v-cell {
+      padding: 0;
+      background: #eff6ff;
+      /* Màu xanh cột chu kỳ đang chọn trong Excel */
+      transition: background 0.15s ease;
+    }
+
+    .v-input {
+      width: 100%;
+      height: 25px;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 2px 8px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: #0f172a;
+      box-sizing: border-box;
+      transition: background 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .v-input:focus {
+      background: #ffffff;
+      box-shadow: inset 0 0 0 2px #2563eb;
+    }
+
+    .v-input-num {
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .v-input-ti {
+      color: #0284c7;
+    }
+
+    .v-input-f {
+      color: #15803d;
+    }
+
+    .v-input-lock-wrap {
+      display: flex;
+      align-items: center;
+      position: relative;
+      width: 100%;
+    }
+
+    .v-input-lock-wrap .v-input {
+      padding-right: 28px;
+    }
+
+    .v-input-lock-wrap .v-input.is-locked {
+      background: #f8fafc;
+      cursor: default;
+      user-select: none;
+    }
+
+    .v-input-lock-wrap .v-input.is-unlocked {
+      background: #ffffff;
+      box-shadow: inset 0 0 0 1.5px #f59e0b;
+      cursor: text;
+    }
+
+    .btn-lock-toggle {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 1px 4px;
+      line-height: 1.2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-lock-toggle:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .btn-lock-toggle.is-unlocked {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+
+    /* 2. Thẻ Đồng Hồ & Điều Khiển Phát */
+    .playback-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+
+    .timer-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .timer-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .timer-digits {
+      font-family: var(--font-mono);
+      font-size: 26px;
+      font-weight: 800;
+      color: #0284c7;
+      letter-spacing: 0.5px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 7px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      touch-action: none;
+      user-select: none;
+      transition: height 0.15s ease;
+    }
+
+    .progress-track:hover,
+    .progress-track.is-scrubbing {
+      height: 9px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #0284c7;
+      border-radius: 4px;
+      width: 0%;
+      pointer-events: none;
+    }
+
+    .progress-thumb {
+      position: absolute;
+      top: 50%;
+      left: 0%;
+      width: 13px;
+      height: 13px;
+      background: #ffffff;
+      border: 2.5px solid #0284c7;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      cursor: grab;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      pointer-events: none;
+    }
+
+    .progress-track:hover .progress-thumb,
+    .progress-track.is-scrubbing .progress-thumb {
+      transform: translate(-50%, -50%) scale(1.25);
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.45);
+    }
+
+    .progress-track.is-scrubbing {
+      cursor: grabbing;
+    }
+
+    .progress-track.is-scrubbing .progress-thumb {
+      background: #0284c7;
+      border-color: #ffffff;
+    }
+
+    /* Hàng nút tua và phát: 3 nút cân đối, thoáng đãng */
+    .transport-controls {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-ctrl {
+      font-family: var(--font-sans);
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 6px 0;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.12s ease;
+      white-space: nowrap;
+    }
+
+    .btn-ctrl:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .btn-ctrl.play-btn {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .btn-ctrl.play-btn:hover {
+      background: #1d4ed8;
+    }
+
+    /* 3. Nút Ghi Mốc Chính */
+    .btn-stamp-main {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.28);
+      letter-spacing: 0.3px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-stamp-main:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-stamp-main.btn-start-mode {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.28);
+    }
+
+    .btn-stamp-main.btn-start-mode:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-stamp-main.btn-resume-mode {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.28);
+    }
+
+    .btn-stamp-main.btn-resume-mode:hover {
+      background: linear-gradient(135deg, #0369a1, #075985);
+      box-shadow: 0 6px 14px rgba(2, 132, 199, 0.35);
+    }
+
+    .btn-stamp-main:active {
+      transform: translateY(0);
+    }
+
+    /* 4. Thẻ Hướng Dẫn Phím Tắt */
+    .shortcut-chips {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .s-chip {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: #f8fafc;
+      border: 1px solid var(--border-light);
+      padding: 4px 2px;
+      border-radius: 5px;
+      font-size: 10.5px;
+      color: #475569;
+      white-space: nowrap;
+    }
+
+    .s-chip kbd {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 10px;
+      color: #1e293b;
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Thanh Kéo Phân Chia Độ Cao Giữa Video & Bảng Excel (Split Resizer) */
+    .split-resizer {
+      height: 9px;
+      background: #f1f5f9;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      cursor: row-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 30;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      user-select: none;
+    }
+
+    .split-resizer:hover,
+    .split-resizer.is-dragging {
+      background: #eff6ff;
+      border-color: #3b82f6;
+    }
+
+    .resizer-handle {
+      width: 48px;
+      height: 4px;
+      background: #94a3b8;
+      border-radius: 2px;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .split-resizer:hover .resizer-handle,
+    .split-resizer.is-dragging .resizer-handle {
+      background: #2563eb;
+      width: 68px;
+      height: 5px;
+      box-shadow: 0 0 6px rgba(37, 99, 235, 0.4);
+    }
+
+    body.is-resizing {
+      cursor: row-resize !important;
+      user-select: none !important;
+    }
+
+    body.is-resizing * {
+      cursor: row-resize !important;
+      user-select: none !important;
+    }
+
+    /* 3. KHU VỰC DƯỚI (BOTTOM): BẢNG EXCEL ĐÚNG CHUẨN FORM MẪU (4 HÀNG / BƯỚC) */
+    .bottom-panel {
+      flex: 1;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .table-toolbar {
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      padding: 5px 16px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 20px;
+      background: #cbd5e1;
+      flex-shrink: 0;
+      margin: 0 4px;
+    }
+
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .cycle-pills-wrap {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      overflow-x: auto;
+      max-width: none;
+      scrollbar-width: none;
+    }
+
+    .cycle-pills-wrap::-webkit-scrollbar {
+      display: none;
+    }
+
+    .pill-cycle-btn {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .pill-cycle-btn:hover {
+      background: #f1f5f9;
+      color: var(--text-main);
+    }
+
+    .pill-cycle-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* Bảng Tính Chuẩn Form Mẫu */
+    .table-viewport {
+      flex: 1;
+      overflow: auto;
+      background: #ffffff;
+      position: relative;
+    }
+
+    .table-scroll-inner {
+      display: inline-flex;
+      align-items: stretch;
+      min-width: 100%;
+      width: max-content;
+      position: relative;
+    }
+
+    table.excel-table {
+      width: max-content;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-top: 1px solid #71717a;
+      border-left: 1px solid #71717a;
+      font-size: 12px;
+      color: #0f172a;
+    }
+
+    /* Thanh Kéo Dọc Phân Chia / Điều Chỉnh Số Chu Kỳ Bên Phải (Vertical Cycle Resizer) */
+    .vertical-cycle-resizer {
+      width: 18px;
+      cursor: col-resize;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      border-top: 1px solid #71717a;
+      border-right: 1px solid #71717a;
+      border-bottom: 1px solid #71717a;
+      position: relative;
+      z-index: 25;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .vertical-cycle-resizer:hover,
+    .vertical-cycle-resizer.is-dragging {
+      background: #eff6ff;
+      border-color: #2563eb;
+    }
+
+    .v-resizer-thumb {
+      width: 12px;
+      height: 48px;
+      background: #94a3b8;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      transition: all 0.15s ease;
+      letter-spacing: -1px;
+    }
+
+    .vertical-cycle-resizer:hover .v-resizer-thumb,
+    .vertical-cycle-resizer.is-dragging .v-resizer-thumb {
+      background: #2563eb;
+      height: 68px;
+      box-shadow: 0 0 8px rgba(37, 99, 235, 0.45);
+    }
+
+    .v-resizer-tooltip {
+      position: fixed;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      display: none;
+      z-index: 9999;
+      transform: translate(-50%, -130%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .v-resizer-tooltip.show {
+      display: block;
+    }
+
+    .btn-cy-preset.active {
+      background: #2563eb !important;
+      color: #ffffff !important;
+      border-color: #1d4ed8 !important;
+      font-weight: 700 !important;
+    }
+
+    body.is-col-resizing {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+
+    body.is-col-resizing * {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+
+    table.excel-table th,
+    table.excel-table td {
+      border-right: 1px solid #71717a;
+      border-bottom: 1px solid #71717a;
+      padding: 4px 6px;
+      vertical-align: middle;
+      box-sizing: border-box;
+    }
+
+    /* Sticky Header Row 1: Cố định vững chắc ở top 0 */
+    table.excel-table thead tr.thead-row-1 th {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      text-align: center;
+      font-size: 11.5px;
+    }
+
+    /* Các cột gộp 2 hàng có z-index cao nhất để không bị đè */
+    table.excel-table thead th.th-fixed {
+      z-index: 22;
+      height: 52px;
+      vertical-align: middle;
+    }
+
+    /* Tiêu đề Cycles ở hàng 1: chiều cao chuẩn 26px */
+    table.excel-table thead th.th-cycles-title {
+      height: 26px;
+      max-height: 26px;
+      line-height: 24px;
+      padding: 0 4px;
+      font-size: 11px;
+      z-index: 20;
+      background: #f1f5f9;
+    }
+
+    /* Sticky Header Row 2 (Số chu kỳ 1..N): Cố định chuẩn xác ở top 26px, không bao giờ bị đè hoặc mất dòng */
+    table.excel-table thead tr.thead-row-2 th {
+      position: sticky;
+      top: 26px;
+      z-index: 21;
+      height: 26px;
+      max-height: 26px;
+      line-height: 24px;
+      padding: 0 4px;
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      text-align: center;
+      font-size: 11px;
+    }
+
+    /* Các cột dữ liệu theo đúng mẫu */
+    .col-no {
+      width: 34px;
+      text-align: center;
+      font-weight: 700;
+      background-color: var(--excel-yellow);
+      color: #000000;
+    }
+
+    .col-process-top {
+      width: 280px;
+      min-width: 240px;
+      background-color: var(--excel-yellow);
+      line-height: 1.35;
+      font-weight: 500;
+      font-size: 11.5px;
+      color: #000000;
+      padding: 6px 8px;
+      vertical-align: middle;
+    }
+
+    .col-measuring-bot {
+      background-color: var(--excel-yellow);
+      font-weight: 500;
+      font-size: 11.5px;
+      color: #000000;
+      border-top: 1px solid #71717a !important;
+      padding: 4px 8px;
+      vertical-align: middle;
+    }
+
+    .col-ref {
+      width: 44px;
+      text-align: center;
+      background-color: var(--excel-yellow);
+      font-weight: 600;
+      color: #1e40af;
+      /* Chữ xanh như trong ảnh form mẫu */
+    }
+
+    .col-measured {
+      width: 75px;
+      text-align: center;
+      background-color: var(--excel-yellow);
+      font-weight: 700;
+      color: #0284c7;
+    }
+
+    /* Cột Chỉ số (Cy/mt): nhận xét, L, ti, F */
+    .col-cymt {
+      width: 140px;
+      min-width: 130px;
+      font-weight: 500;
+      font-size: 11px;
+      white-space: nowrap;
+      background-color: #ffffff;
+      padding-left: 8px;
+      color: #0f172a;
+    }
+
+    /* Các ô chu kỳ dữ liệu (Cycles) màu vàng nhạt chuẩn Excel */
+    .col-cy {
+      width: 44px;
+      min-width: 42px;
+      text-align: center;
+      background-color: var(--excel-yellow);
+      font-size: 11px;
+      color: #000000;
+    }
+
+    .col-action {
+      width: 32px;
+      text-align: center;
+      background-color: #ffffff;
+    }
+
+    /* Đường kẻ phân cách đen đậm giữa các bước ở dưới hàng 4 */
+    .row-f td {
+      border-bottom: 2px solid #000000 !important;
+    }
+
+    /* Highlight bước đang đo & ô đo hiện tại */
+    .active-step-indicator {
+      border-left: 4px solid var(--primary) !important;
+    }
+
+    .cell-active-measuring {
+      background-color: #bfdbfe !important;
+      outline: 2px solid #2563eb;
+      outline-offset: -2px;
+    }
+
+    .cell-editable {
+      cursor: text;
+      outline: none;
+    }
+
+    .cell-editable:focus {
+      background: #eff6ff !important;
+      box-shadow: inset 0 0 0 2px var(--primary);
+    }
+
+    .btn-trash {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 4px;
+    }
+
+    .btn-trash:hover {
+      color: #ef4444;
+    }
+
+    /* Modal Hướng Dẫn */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      width: 440px;
+      max-width: 90vw;
+      padding: 18px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .modal-header {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .keys-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    .key-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      padding: 5px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-light);
+      font-size: 11.5px;
+    }
+
+    .key-item kbd {
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    /* Styling cho Autocomplete Dropdown & Quản lý Nhận xét mẫu */
+    .btn-manage-presets {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      padding: 1px 4px;
+      margin-left: 4px;
+      color: #475569;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
+    }
+
+    .btn-manage-presets:hover {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    .suggest-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1.5px solid #2563eb;
+      border-radius: 6px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 9999;
+      margin-top: 2px;
+    }
+
+    .suggest-dropdown.show {
+      display: block;
+    }
+
+    .suggest-item {
+      padding: 7px 10px;
+      font-size: 12.5px;
+      cursor: pointer;
+      color: #0f172a;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.15s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .suggest-item:last-child {
+      border-bottom: none;
+    }
+
+    .suggest-item:hover,
+    .suggest-item.active {
+      background-color: #eff6ff;
+      color: #2563eb;
+      font-weight: 600;
+    }
+
+    /* Modal CRUD Nhận xét Mẫu */
+    .preset-crud-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .preset-add-box {
+      display: flex;
+      gap: 6px;
+    }
+
+    .preset-input {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .preset-crud-list {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+    }
+
+    .preset-crud-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+
+    .preset-crud-item:last-child {
+      border-bottom: none;
+    }
+
+    .preset-crud-text {
+      font-size: 13px;
+      color: #334155;
+      flex: 1;
+      padding-right: 8px;
+    }
+
+    .preset-crud-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-sm-action {
+      padding: 3px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .btn-sm-action:hover {
+      background: #f1f5f9;
+    }
+
+    .btn-sm-danger {
+      color: #dc2626;
+      border-color: #fca5a5;
+    }
+
+    .btn-sm-danger:hover {
+      background: #fef2f2;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 1. Header Tối Giản -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">IE</div>
+      <div>
+        <span class="brand-title">Video Time Study</span>
+        <span class="brand-subtitle">| Bấm giờ công đoạn & Form mẫu chuẩn</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Trạng thái tự động lưu thời gian thực -->
+      <span id="saveStatusBadge" class="save-status-pill"
+        title="Mọi thao tác của bạn đều được tự động lưu vào trình duyệt (LocalStorage)">
+        <span class="save-dot"></span> Đã tự động lưu
+      </span>
+
+      <label for="videoInput" class="btn btn-primary" title="Nạp file video để bấm giờ">
+        📁 Nạp Video
+      </label>
+      <input type="file" id="videoInput" accept="video/*" style="display: none;">
+
+      <!-- Lưu / Mở file dự án JSON để sao lưu hoặc chuyển máy -->
+      <button id="btnSaveProject" class="btn"
+        title="Tải file dự án (.json) về máy để sao lưu hoặc chuyển sang máy khác">
+        💾 Lưu dự án
+      </button>
+      <label for="projectFileInput" class="btn" title="Mở file dự án (.json) đã lưu trước đó">
+        📂 Mở dự án
+      </label>
+      <input type="file" id="projectFileInput" accept=".json" style="display: none;">
+
+      <button id="btnExportExcel" class="btn btn-success" title="Xuất dữ liệu bảng tính ra file Excel">
+        📥 Xuất Excel (.xls)
+      </button>
+
+      <button id="btnResetData" class="btn" title="Làm mới bảng về trạng thái ban đầu">
+        🔄 Làm mới
+      </button>
+
+      <button id="btnOpenHelp" class="btn" title="Xem phím tắt">
+        ❓ Phím tắt
+      </button>
+    </div>
+  </header>
+
+  <!-- 2. PHẦN TRÊN: VIDEO RỘNG MỞ & ĐIỀU KHIỂN GỌN GÀNG -->
+  <div class="top-panel">
+
+    <!-- Màn hình Video Rộng Lớn -->
+    <div class="video-viewport">
+      <video id="mainVideo" preload="auto"></video>
+
+      <!-- Overlay hiển thị trực tiếp 2 nội dung của bước trên màn hình Video -->
+      <div class="video-step-hud" id="videoStepHud">
+        <div class="hud-header">
+          <div class="hud-badges">
+            <span class="hud-badge-step" id="hudStepBadge">BƯỚC 1 / 7</span>
+            <span class="hud-badge-cycle" id="hudCycleBadge">CHU KỲ 1</span>
+          </div>
+          <button class="hud-toggle-btn" id="btnToggleHud" title="Thu gọn / Mở rộng thông tin trên video">👁️ Thu
+            gọn</button>
+        </div>
+        <div class="hud-body" id="hudBody">
+          <div class="hud-process" id="hudProcessTitle">Pick up the harness from grey box</div>
+          <div class="hud-measuring">
+            <span>🎯</span>
+            <span class="hud-measuring-label">Mốc dừng:</span>
+            <span class="hud-measuring-val" id="hudMeasuringPoint">Harness on the board</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="video-empty" id="placeholderNotice" onclick="document.getElementById('videoInput').click()"
+        title="Nhấp chuột hoặc kéo thả file video vào đây để nạp">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+        <div style="font-weight: 700; font-size: 15px; color: #f8fafc; margin-bottom: 4px;">Chưa nạp video</div>
+        <div style="font-size: 12px; color: #94a3b8; line-height: 1.4;">
+          Nhấp vào đây hoặc bấm nút <strong>"📁 Nạp Video"</strong> ở góc trên<br>
+          <span style="font-size: 11px; color: #64748b;">(Hỗ trợ kéo &amp; thả file MP4, WebM, MOV)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thanh Kéo Dọc Phân Chia Chiều Rộng Giữa Video & Cột Điều Khiển (Vertical Video Resizer) -->
+    <div class="video-resizer" id="videoResizer"
+      title="Kéo sang trái / phải để tùy chỉnh độ rộng Video và Bảng điều khiển (Nhấp đúp để đặt lại cân đối)">
+      <div class="video-resizer-handle"></div>
+    </div>
+
+    <!-- Cột Điều Khiển Phía Phải -->
+    <div class="controls-sidebar" id="controlsSidebar">
+
+      <!-- Thẻ Bước Đang Đo -->
+      <div class="step-card">
+        <div class="step-meta">
+          <span class="pill-step" id="currentStepBadge">BƯỚC 1 / 7</span>
+          <span class="pill-cycle" id="currentCycleBadge">CHU KỲ 1</span>
+          <span class="pill-time-info" id="currentStartBadge"
+            style="display: none; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; cursor: pointer;"
+            title="Nhấp vào để đổi hoặc chọn lại mốc Start"></span>
+        </div>
+        <div class="step-name" id="currentStepName">Pick up the harness from grey box</div>
+        <div class="measuring-pill">
+          <span>🎯</span>
+          <span><strong>Mốc dừng:</strong> <span id="currentMeasuringPoint">Harness on the board</span></span>
+        </div>
+      </div>
+
+      <!-- Thẻ Hiển Thị & Nhập Trực Tiếp Dữ Liệu Bước Hiện Tại (Nhận xét, L, ti, F) Đồng Bộ Excel -->
+      <div class="step-values-card" id="stepValuesCard">
+        <div class="values-card-header">
+          <span class="values-title" id="valCardTitle">📝 DỮ LIỆU ĐO: <span id="valCardStepName"
+              style="color: #2563eb;">BƯỚC 1</span> (CY <span id="valCardCyNum" class="cy-highlight">1</span>)</span>
+          <div class="values-header-actions" id="valCardActions">
+            <span class="values-status-badge">⚡ Đồng bộ</span>
+          </div>
+        </div>
+
+        <table class="values-mini-table">
+          <tbody>
+            <tr>
+              <td class="v-label">
+                Nhận xét
+                <button type="button" id="btnManageNxPresets" class="btn-manage-presets"
+                  title="Quản lý danh sách nhận xét mẫu">⚙️</button>
+              </td>
+              <td class="v-cell" style="position: relative;">
+                <input type="text" id="sideValNx" class="v-input" placeholder="Ghi chú nhận xét..."
+                  title="Nhập nhận xét (tự đồng bộ với Excel)" autocomplete="off">
+                <div id="nxSuggestDropdown" class="suggest-dropdown"></div>
+              </td>
+            </tr>
+            <tr>
+              <td class="v-label">L</td>
+              <td class="v-cell" style="position: relative;">
+                <input type="text" id="sideValL" class="v-input" placeholder="L..."
+                  title="Nhập L (tự đồng bộ với Excel, 50-120)" autocomplete="off">
+                <div id="lSuggestDropdown" class="suggest-dropdown"></div>
+              </td>
+            </tr>
+            <tr>
+              <td class="v-label v-label-ti">ti</td>
+              <td class="v-cell v-cell-ti">
+                <div class="v-input-lock-wrap">
+                  <input type="text" id="sideValTi" class="v-input v-input-num v-input-ti is-locked" placeholder="0.0"
+                    readonly
+                    title="Thời gian thao tác ti = F - Start (giây) - Đang khóa chống bấm nhầm số, nhấp vào 🔒 để sửa">
+                  <button type="button" class="btn-lock-toggle" id="btnLockTi"
+                    title="Nhấp vào để mở khóa chỉnh sửa số ti">🔒</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="v-label v-label-f">F</td>
+              <td class="v-cell v-cell-f">
+                <div class="v-input-lock-wrap">
+                  <input type="text" id="sideValF" class="v-input v-input-num v-input-f is-locked" placeholder="0.0"
+                    readonly title="Mốc video dừng F (giây) - Đang khóa chống bấm nhầm số, nhấp vào 🔒 để sửa">
+                  <button type="button" class="btn-lock-toggle" id="btnLockF"
+                    title="Nhấp vào để mở khóa chỉnh sửa số F">🔒</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Đồng Hồ & Bộ Tua Video -->
+      <div class="playback-card">
+        <div class="timer-line">
+          <span class="timer-label">THỜI GIAN VIDEO:</span>
+          <span class="timer-digits" id="timerValue">00:00.00</span>
+        </div>
+
+        <div class="progress-track" id="progressBar" title="Nhấp hoặc giữ kéo để tua video">
+          <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-thumb" id="progressThumb"></div>
+        </div>
+
+        <!-- Hàng nút tua và phát: 3 nút rõ ràng, thoải mái -->
+        <div class="transport-controls">
+          <button class="btn-ctrl" id="btnBack1s" title="Tua lùi 1 giây (←)">⏪ -1s</button>
+          <button class="btn-ctrl play-btn" id="btnPlayPause" title="Phát / Tạm dừng (Space)">
+            <span id="playIcon">▶ Phát</span>
+          </button>
+          <button class="btn-ctrl" id="btnFwd1s" title="Tua tiến 1 giây (→)">+1s ⏩</button>
+        </div>
+      </div>
+
+      <!-- Nút Ghi Mốc Chính -->
+      <button id="btnRecordStamp" class="btn-stamp-main btn-start-mode">
+        🟢 BẮT ĐẦU CHU KỲ 1 (ENTER)
+      </button>
+
+      <!-- Hướng Dẫn Phím Tắt Gọn Gàng Không Bị Xuống Hàng Rối Mắt -->
+      <div class="shortcut-chips">
+        <div class="s-chip"><kbd>Enter</kbd> Bắt đầu / Ghi mốc</div>
+        <div class="s-chip"><kbd>Space</kbd> Chạy/Dừng</div>
+        <div class="s-chip"><kbd>Ctrl+Z</kbd> Hoàn tác</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Thanh Kéo Ngăn Cách Phân Chia Độ Rộng Giữa Video & Bảng Excel -->
+  <div class="split-resizer" id="splitResizer"
+    title="Kéo lên / xuống để tùy chỉnh độ cao Video & Bảng Excel (Nhấp đúp để đặt lại cân đối)">
+    <div class="resizer-handle"></div>
+  </div>
+
+  <!-- 3. PHẦN DƯỚI: BẢNG EXCEL THEO ĐÚNG CHUẨN FORM MẪU (MỖI BƯỚC 4 HÀNG) -->
+  <div class="bottom-panel">
+
+    <!-- Toolbar Điều Khiển -->
+    <div class="table-toolbar">
+      <div class="toolbar-left">
+        <button id="btnAddStep" class="btn btn-primary" title="Thêm một bước thao tác mới vào cuối bảng">
+          ➕ Thêm hàng
+        </button>
+        <button id="btnAddCycle" class="btn" title="Thêm cột chu kỳ đo">
+          ➕ Thêm Cột
+        </button>
+        <button id="btnRemoveCycle" class="btn" title="Bớt cột chu kỳ đo cuối">
+          ➖ Bớt cột
+        </button>
+
+        <!-- Nút Chọn Nhanh Số Chu Kỳ Hiển Thị -->
+        <div class="cycle-preset-group" style="display: flex; align-items: center; gap: 4px; margin-left: 6px;">
+          <span style="font-size: 11px; font-weight: 700; color: #64748b;">Số Cy:</span>
+          <button class="btn btn-cy-preset" data-cycles="5" style="padding: 2px 7px; font-size: 11px;">5</button>
+          <button class="btn btn-cy-preset active" data-cycles="8"
+            style="padding: 2px 7px; font-size: 11px; font-weight: 700;">8 Cy</button>
+          <button class="btn btn-cy-preset" data-cycles="10" style="padding: 2px 7px; font-size: 11px;">10</button>
+          <button class="btn btn-cy-preset" data-cycles="15" style="padding: 2px 7px; font-size: 11px;">15</button>
+        </div>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-right">
+        <span style="font-size: 11.5px; font-weight: 700; color: #64748b; white-space: nowrap;">CHU KỲ:</span>
+        <div class="cycle-pills-wrap" id="cycleNav">
+          <!-- Render Cy 1 -> N -->
+        </div>
+
+        <div style="display: flex; gap: 4px; margin-left: 4px;">
+          <button id="btnPrevStep" class="btn" style="padding: 3px 8px;" title="Về bước trước">▲</button>
+          <button id="btnNextStep" class="btn" style="padding: 3px 8px;" title="Qua bước sau">▼</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Khung Bảng Tính -->
+    <div class="table-viewport">
+      <div class="table-scroll-inner">
+        <table class="excel-table" id="studyTable">
+          <thead>
+            <tr class="thead-row-1">
+              <th rowspan="2" class="th-fixed" style="width: 34px;">No.</th>
+              <th rowspan="2" class="th-fixed" style="width: 290px;">Process sequence and measuring point</th>
+              <th rowspan="2" class="th-fixed" style="width: 44px;">Ref.<br>Quantity</th>
+              <th rowspan="2" class="th-fixed" style="width: 75px;">Measured<br>values</th>
+              <th rowspan="2" class="th-fixed" style="width: 140px;">Cy / mt</th>
+              <th id="thCyclesTitle" colspan="8" class="th-cycles-title">Cycles</th>
+              <th rowspan="2" class="th-fixed" style="width: 32px;">Del</th>
+            </tr>
+            <tr id="cycleHeaderRow" class="thead-row-2">
+              <!-- Cột 1 -> N -->
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Render chuẩn 4 hàng cho mỗi bước -->
+          </tbody>
+        </table>
+
+        <!-- Thanh Kéo Dọc Điều Chỉnh Số Chu Kỳ Bên Phải (Vertical Cycle Resizer) -->
+        <div class="vertical-cycle-resizer" id="verticalCycleResizer"
+          title="Cầm và kéo sang trái để giảm số chu kỳ về 8 cho gọn / kéo sang phải để tăng chu kỳ (Nhấp đúp để đổi 8/15)">
+          <div class="v-resizer-thumb">⋮</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tooltip hiển thị số chu kỳ khi đang kéo thanh bên phải -->
+    <div class="v-resizer-tooltip" id="vResizerTooltip">📊 8 Chu kỳ</div>
+
+  </div>
+
+  <!-- Modal Phím Tắt -->
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>⌨️ Phím Tắt Tiện Dụng Cho Kỹ Sư</span>
+        <button id="btnCloseHelpX"
+          style="background: none; border: none; font-size: 16px; cursor: pointer; color: #64748b;">✕</button>
+      </div>
+      <div class="keys-grid">
+        <div class="key-item"><span>Ghi mốc & Nhảy bước:</span><kbd>Enter</kbd></div>
+        <div class="key-item"><span>Phát / Dừng video:</span><kbd>Space</kbd></div>
+        <div class="key-item"><span>Tua lùi / tiến 1s:</span><kbd>← / →</kbd></div>
+        <div class="key-item"><span>Chuyển bước trước / sau:</span><kbd>↑ / ↓</kbd></div>
+        <div class="key-item"><span>Hoàn tác bấm nhầm:</span><kbd>Ctrl + Z</kbd></div>
+      </div>
+      <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.4;">
+        💡 <strong>Mẹo:</strong> Nhấp trực tiếp vào bất kỳ ô nào trên bảng tính để tự sửa Tên bước, Mốc dừng, Ref Qty,
+        số L, ti, F.
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+        <div style="font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 4px;">
+          <span>© Bản quyền:</span>
+          <strong style="color: #2563eb; font-weight: 700;">Trung Trịnh</strong>
+        </div>
+        <button id="btnCloseHelp" class="btn btn-primary" style="padding: 5px 14px;">Đã Hiểu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Quản Lý Danh Sách Nhận Xét Mẫu (CRUD) -->
+  <div class="modal-overlay" id="presetNxModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>⚙️ Quản Lý Nhận Xét Mẫu</span>
+        <button id="btnCloseNxModalX"
+          style="background: none; border: none; font-size: 16px; cursor: pointer; color: #64748b;">✕</button>
+      </div>
+      <div class="preset-crud-container">
+        <div class="preset-add-box">
+          <input type="text" id="inputNewNxPreset" class="preset-input" placeholder="Nhập mẫu nhận xét mới...">
+          <button type="button" id="btnAddNxPreset" class="btn btn-primary"
+            style="padding: 5px 12px; font-size: 13px;">Thêm</button>
+        </div>
+        <div id="nxPresetCrudList" class="preset-crud-list"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+          <button type="button" id="btnRestoreDefaultNx" class="btn-sm-action" style="color: #475569;">🔄 Khôi phục mặc
+            định</button>
+          <button type="button" id="btnCloseNxModal" class="btn btn-primary" style="padding: 5px 14px;">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logic Ứng Dụng -->
+  <script>
+    const INITIAL_STEPS = [
+      { no: 1, process: "Pick up the harness from grey box", measuringPoint: "Harness on the board", refQty: 1, measuredValue: "" },
+      { no: 2, process: "Plug-in the connector on PA", measuringPoint: "Press 1st enter", refQty: 1, measuredValue: "" },
+      { no: 3, process: "Testing", measuringPoint: "Press 2nd enter", refQty: 1, measuredValue: "" },
+      { no: 4, process: "Take out the harness", measuringPoint: "Press 3rd enter", refQty: 1, measuredValue: "" },
+      { no: 5, process: "Move it on e-ticket and attach the KZ lable", measuringPoint: "Operator hold the harness and turn-around", refQty: 1, measuredValue: "" },
+      { no: 6, process: "Place harness on the carton box", measuringPoint: "Pick up the new one", refQty: 1, measuredValue: "" },
+      { no: 7, process: "Move the finished box to the pallet. Pick up the new carton box and put on the rack. Take module lable from grey box to paste on carton box and scan.", measuringPoint: "Finish scan", refQty: 20, measuredValue: "" }
+    ];
+
+    const INITIAL_CYCLES_DATA = {};
+
+    const STORAGE_KEY = "IE_VIDEO_TIMESTUDY_V8";
+
+    let state = {
+      steps: JSON.parse(JSON.stringify(INITIAL_STEPS)),
+      totalCycles: 8,
+      currentCycle: 1,
+      currentStepIndex: 0,
+      cyclesData: JSON.parse(JSON.stringify(INITIAL_CYCLES_DATA)),
+      history: [],
+      stepStartTime: null,
+      isStepPausedWaiting: false
+    };
+
+    // Mục tiêu đang xem và sửa trực tiếp trên thẻ Dữ liệu đo (mặc định trỏ vào bước đang đo)
+    let inspectedTarget = { sIdx: 0, cy: 1 };
+
+    function loadSavedState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.steps && parsed.steps.length > 0) {
+            state.steps = parsed.steps.map((s, idx) => ({
+              no: s.no || idx + 1,
+              process: s.process || `Bước ${idx + 1}`,
+              measuringPoint: s.measuringPoint || "",
+              refQty: s.refQty !== undefined ? s.refQty : 1,
+              measuredValue: s.measuredValue !== undefined ? s.measuredValue : ""
+            }));
+          }
+          if (parsed.totalCycles) state.totalCycles = parsed.totalCycles;
+          else state.totalCycles = 8;
+          if (parsed.cyclesData) state.cyclesData = parsed.cyclesData;
+          state.currentCycle = parsed.currentCycle || 1;
+          state.currentStepIndex = parsed.currentStepIndex || 0;
+          state.stepStartTime = parsed.stepStartTime ?? null;
+          inspectedTarget = { sIdx: state.currentStepIndex, cy: state.currentCycle };
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        inspectedTarget = { sIdx: state.currentStepIndex, cy: state.currentCycle };
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        steps: state.steps,
+        totalCycles: state.totalCycles,
+        cyclesData: state.cyclesData,
+        currentCycle: state.currentCycle,
+        currentStepIndex: state.currentStepIndex,
+        stepStartTime: state.stepStartTime
+      }));
+
+      // Cập nhật huy hiệu báo đã lưu với giờ phút giây hiện tại
+      const badge = document.getElementById("saveStatusBadge");
+      if (badge) {
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        badge.innerHTML = `<span class="save-dot"></span> Đã lưu (${timeStr})`;
+      }
+    }
+
+    // DOM Elements
+    const video = document.getElementById("mainVideo");
+    const videoInput = document.getElementById("videoInput");
+    const placeholderNotice = document.getElementById("placeholderNotice");
+    const timerValue = document.getElementById("timerValue");
+    const btnPlayPause = document.getElementById("btnPlayPause");
+    const playIcon = document.getElementById("playIcon");
+    const progressBar = document.getElementById("progressBar");
+    const progressFill = document.getElementById("progressFill");
+    const progressThumb = document.getElementById("progressThumb");
+    const btnRecordStamp = document.getElementById("btnRecordStamp");
+
+    const currentStepBadge = document.getElementById("currentStepBadge");
+    const currentCycleBadge = document.getElementById("currentCycleBadge");
+    const currentStepName = document.getElementById("currentStepName");
+    const currentMeasuringPoint = document.getElementById("currentMeasuringPoint");
+
+    const cycleNav = document.getElementById("cycleNav");
+    const cycleHeaderRow = document.getElementById("cycleHeaderRow");
+    const thCyclesTitle = document.getElementById("thCyclesTitle");
+    const tableBody = document.getElementById("tableBody");
+
+    function formatTimeCode(seconds) {
+      if (isNaN(seconds) || seconds < 0) return "00:00.00";
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      const centis = Math.floor((seconds % 1) * 100);
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(centis).padStart(2, '0')}`;
+    }
+
+    // Khóa cố định tốc độ chuẩn 1.0x (100% nguyên bản của video)
+    function enforceStandardSpeed() {
+      if (video.playbackRate !== 1.0) video.playbackRate = 1.0;
+      if (video.defaultPlaybackRate !== 1.0) video.defaultPlaybackRate = 1.0;
+    }
+    video.addEventListener("ratechange", enforceStandardSpeed);
+    video.addEventListener("loadedmetadata", enforceStandardSpeed);
+
+    // Cập nhật vị trí thanh tiến trình và thời gian hiển thị
+    function updateProgressDisplay() {
+      if (video.duration) {
+        const pct = Math.max(0, Math.min(100, (video.currentTime / video.duration) * 100));
+        progressFill.style.width = `${pct}%`;
+        if (progressThumb) progressThumb.style.left = `${pct}%`;
+      }
+      timerValue.textContent = formatTimeCode(video.currentTime);
+    }
+
+    // Vòng lặp cập nhật mượt mà 60fps qua requestAnimationFrame
+    let rafTimerId = null;
+    function smoothTimerLoop() {
+      if (!video.paused && !video.ended) {
+        updateProgressDisplay();
+        rafTimerId = requestAnimationFrame(smoothTimerLoop);
+      }
+    }
+
+    // Nạp Video
+    videoInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        video.src = URL.createObjectURL(file);
+        placeholderNotice.style.display = "none";
+        enforceStandardSpeed();
+        video.play();
+      }
+    });
+
+    // Kéo thả video vào màn hình
+    const videoViewport = document.querySelector(".video-viewport");
+    videoViewport.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      videoViewport.style.borderColor = "#3b82f6";
+    });
+    videoViewport.addEventListener("dragleave", () => {
+      videoViewport.style.borderColor = "#1e293b";
+    });
+    videoViewport.addEventListener("drop", (e) => {
+      e.preventDefault();
+      videoViewport.style.borderColor = "#1e293b";
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("video/")) {
+        video.src = URL.createObjectURL(file);
+        placeholderNotice.style.display = "none";
+        enforceStandardSpeed();
+        video.play();
+      }
+    });
+
+    video.addEventListener("timeupdate", () => {
+      if (video.paused) {
+        updateProgressDisplay();
+      }
+    });
+
+    video.addEventListener("seeked", () => {
+      updateProgressDisplay();
+    });
+
+    video.addEventListener("play", () => {
+      enforceStandardSpeed();
+      playIcon.textContent = "⏸ Tạm Dừng";
+      if (state.isStepPausedWaiting) {
+        state.isStepPausedWaiting = false;
+        updateStampButtonText();
+      }
+      cancelAnimationFrame(rafTimerId);
+      rafTimerId = requestAnimationFrame(smoothTimerLoop);
+    });
+
+    video.addEventListener("pause", () => {
+      playIcon.textContent = "▶ Phát";
+      cancelAnimationFrame(rafTimerId);
+      updateProgressDisplay();
+    });
+
+    btnPlayPause.addEventListener("click", () => {
+      if (video.paused) video.play();
+      else video.pause();
+    });
+
+    // Cầm và kéo thanh tua video (Draggable Scrubber với Pointer Events)
+    let isScrubbing = false;
+    let wasPlayingBeforeScrub = false;
+
+    function seekFromEvent(e) {
+      if (!video.duration) return;
+      const rect = progressBar.getBoundingClientRect();
+      const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      video.currentTime = pos * video.duration;
+      updateProgressDisplay();
+    }
+
+    progressBar.addEventListener("pointerdown", (e) => {
+      if (!video.duration) return;
+      isScrubbing = true;
+      wasPlayingBeforeScrub = !video.paused;
+      if (wasPlayingBeforeScrub) {
+        video.pause();
+      }
+      progressBar.classList.add("is-scrubbing");
+      progressBar.setPointerCapture(e.pointerId);
+      seekFromEvent(e);
+    });
+
+    progressBar.addEventListener("pointermove", (e) => {
+      if (!isScrubbing) return;
+      seekFromEvent(e);
+    });
+
+    function finishScrubbing(e) {
+      if (!isScrubbing) return;
+      isScrubbing = false;
+      progressBar.classList.remove("is-scrubbing");
+      try { progressBar.releasePointerCapture(e.pointerId); } catch (_) { }
+      seekFromEvent(e);
+      if (wasPlayingBeforeScrub) {
+        video.play();
+      }
+    }
+
+    progressBar.addEventListener("pointerup", finishScrubbing);
+    progressBar.addEventListener("pointercancel", finishScrubbing);
+
+    // Tua 1s
+    document.getElementById("btnBack1s").addEventListener("click", () => {
+      video.currentTime = Math.max(0, video.currentTime - 1);
+      updateProgressDisplay();
+    });
+    document.getElementById("btnFwd1s").addEventListener("click", () => {
+      video.currentTime = Math.min(video.duration || 9999, video.currentTime + 1);
+      updateProgressDisplay();
+    });
+
+    // Render thanh chọn Chu kỳ (Pills)
+    function renderCycleNav() {
+      cycleNav.innerHTML = "";
+      for (let i = 1; i <= state.totalCycles; i++) {
+        const btn = document.createElement("button");
+        btn.className = `pill-cycle-btn ${i === state.currentCycle ? 'active' : ''}`;
+        btn.textContent = `Cy ${i}`;
+        btn.addEventListener("click", () => {
+          changeActiveStep(0, i);
+        });
+        cycleNav.appendChild(btn);
+      }
+    }
+
+    function renderCycleHeaders() {
+      thCyclesTitle.colSpan = state.totalCycles;
+      cycleHeaderRow.innerHTML = "";
+      for (let i = 1; i <= state.totalCycles; i++) {
+        const th = document.createElement("th");
+        th.className = "col-cy";
+        th.textContent = i;
+        if (i === state.currentCycle) {
+          th.style.backgroundColor = "#dbeafe";
+          th.style.color = "#1e40af";
+          th.style.fontWeight = "800";
+        }
+        cycleHeaderRow.appendChild(th);
+      }
+    }
+
+    function updateStampButtonText() {
+      const sIdx = state.currentStepIndex;
+      const cy = state.currentCycle;
+      if (state.stepStartTime === null) {
+        btnRecordStamp.innerHTML = `🟢 BẮT ĐẦU CHU KỲ ${cy} (ENTER)`;
+        btnRecordStamp.className = "btn-stamp-main btn-start-mode";
+      } else if (state.isStepPausedWaiting) {
+        btnRecordStamp.innerHTML = `▶ TIẾP TỤC ĐO BƯỚC ${sIdx + 1} (ENTER)`;
+        btnRecordStamp.className = "btn-stamp-main btn-resume-mode";
+      } else {
+        btnRecordStamp.innerHTML = `⏱ GHI KẾT THÚC BƯỚC ${sIdx + 1} (ENTER)`;
+        btnRecordStamp.className = "btn-stamp-main";
+      }
+    }
+
+    function updateCardInfo() {
+      if (state.steps.length === 0) return;
+      if (state.currentStepIndex >= state.steps.length) state.currentStepIndex = 0;
+      const step = state.steps[state.currentStepIndex];
+      currentStepBadge.textContent = `BƯỚC ${step.no} / ${state.steps.length}`;
+      currentCycleBadge.textContent = `CHU KỲ ${state.currentCycle}`;
+      currentStepName.textContent = step.process;
+      currentMeasuringPoint.textContent = step.measuringPoint;
+
+      // Cập nhật lên lớp phủ trực tiếp trên màn hình Video (HUD)
+      const hudStepBadge = document.getElementById("hudStepBadge");
+      const hudCycleBadge = document.getElementById("hudCycleBadge");
+      const hudProcessTitle = document.getElementById("hudProcessTitle");
+      const hudMeasuringPoint = document.getElementById("hudMeasuringPoint");
+      if (hudStepBadge) hudStepBadge.textContent = `BƯỚC ${step.no} / ${state.steps.length}`;
+      if (hudCycleBadge) hudCycleBadge.textContent = `CHU KỲ ${state.currentCycle}`;
+      if (hudProcessTitle) hudProcessTitle.textContent = step.process || `Bước ${step.no}`;
+      if (hudMeasuringPoint) hudMeasuringPoint.textContent = step.measuringPoint || "(Chưa có mốc dừng)";
+
+      const startBadge = document.getElementById("currentStartBadge");
+      if (startBadge) {
+        if (state.stepStartTime !== null) {
+          startBadge.style.display = "inline-block";
+          startBadge.textContent = `Mốc Start: ${formatTimeCode(state.stepStartTime)}`;
+        } else {
+          startBadge.style.display = "none";
+        }
+      }
+      updateStampButtonText();
+      updateSidebarValues();
+    }
+
+    function highlightInspectedCell(sIdx, cy) {
+      document.querySelectorAll(".cell-inspected").forEach(el => el.classList.remove("cell-inspected"));
+      ['nx', 'L', 'ti', 'F'].forEach(type => {
+        const cell = document.getElementById(`cell_${sIdx}_cy${cy}_${type}`);
+        if (cell) cell.classList.add("cell-inspected");
+      });
+    }
+
+    function setInputLockState(inputEl, btnEl, locked) {
+      if (!inputEl || !btnEl) return;
+      inputEl.readOnly = locked;
+      if (locked) {
+        inputEl.classList.add("is-locked");
+        inputEl.classList.remove("is-unlocked");
+        btnEl.classList.remove("is-unlocked");
+        btnEl.textContent = "🔒";
+        btnEl.title = "Đang khóa chống bấm nhầm số - Nhấp vào 🔒 để mở khóa chỉnh sửa";
+      } else {
+        inputEl.classList.remove("is-locked");
+        inputEl.classList.add("is-unlocked");
+        btnEl.classList.add("is-unlocked");
+        btnEl.textContent = "🔓";
+        btnEl.title = "Đang mở khóa - Nhấp để khóa lại";
+      }
+    }
+
+    function updateSidebarValues(targetSIdx, targetCy) {
+      if (targetSIdx !== undefined) inspectedTarget.sIdx = targetSIdx;
+      if (targetCy !== undefined) inspectedTarget.cy = targetCy;
+
+      if (inspectedTarget.sIdx >= state.steps.length) inspectedTarget.sIdx = Math.max(0, state.steps.length - 1);
+      if (inspectedTarget.sIdx < 0) inspectedTarget.sIdx = 0;
+      if (inspectedTarget.cy > state.totalCycles) inspectedTarget.cy = state.totalCycles;
+      if (inspectedTarget.cy < 1) inspectedTarget.cy = 1;
+
+      const sIdx = inspectedTarget.sIdx;
+      const cy = inspectedTarget.cy;
+      const key = `${sIdx}_cy${cy}`;
+      const data = state.cyclesData[key] || {};
+      const step = state.steps[sIdx];
+      const stepNo = step ? step.no : (sIdx + 1);
+
+      const valCardStepName = document.getElementById("valCardStepName");
+      if (valCardStepName) valCardStepName.textContent = `BƯỚC ${stepNo}`;
+
+      const valCardCyNum = document.getElementById("valCardCyNum");
+      if (valCardCyNum) valCardCyNum.textContent = cy;
+
+      const valCardActions = document.getElementById("valCardActions");
+      if (valCardActions) {
+        const isMeasuring = (sIdx === state.currentStepIndex && cy === state.currentCycle);
+        if (!isMeasuring) {
+          valCardActions.innerHTML = `
+            <button class="btn-return-measuring" id="btnReturnMeasuring" title="Trở lại xem bước đang đo của video">
+              ↩ Bước đang đo
+            </button>
+          `;
+          const btnReturn = document.getElementById("btnReturnMeasuring");
+          if (btnReturn) {
+            btnReturn.onclick = () => {
+              updateSidebarValues(state.currentStepIndex, state.currentCycle);
+              highlightInspectedCell(state.currentStepIndex, state.currentCycle);
+            };
+          }
+        } else {
+          valCardActions.innerHTML = `<span class="values-status-badge">⚡ Đồng bộ</span>`;
+        }
+      }
+
+      const sideValNx = document.getElementById("sideValNx");
+      const sideValL = document.getElementById("sideValL");
+      const sideValTi = document.getElementById("sideValTi");
+      const sideValF = document.getElementById("sideValF");
+      const btnLockTi = document.getElementById("btnLockTi");
+      const btnLockF = document.getElementById("btnLockF");
+
+      if (sideValNx && document.activeElement !== sideValNx) {
+        sideValNx.value = data.nx ?? "";
+      }
+      if (sideValL && document.activeElement !== sideValL) {
+        sideValL.value = data.L ?? "";
+      }
+      if (sideValTi && document.activeElement !== sideValTi) {
+        const ti = data.ti;
+        sideValTi.value = (ti !== undefined && ti !== "") ? (typeof ti === 'number' ? (Number.isInteger(ti) ? ti : ti.toFixed(1)) : ti) : "";
+        setInputLockState(sideValTi, btnLockTi, true);
+      }
+      if (sideValF && document.activeElement !== sideValF) {
+        const F = data.F;
+        sideValF.value = (F !== undefined && F !== "") ? (typeof F === 'number' ? (Number.isInteger(F) ? F : F.toFixed(1)) : F) : "";
+        setInputLockState(sideValF, btnLockF, true);
+      }
+    }
+
+    // Nút thu gọn / mở lớp phủ trên video
+    const btnToggleHud = document.getElementById("btnToggleHud");
+    const videoStepHud = document.getElementById("videoStepHud");
+    if (btnToggleHud && videoStepHud) {
+      btnToggleHud.addEventListener("click", () => {
+        const isCollapsed = videoStepHud.classList.toggle("collapsed");
+        btnToggleHud.textContent = isCollapsed ? "👁️ Mở" : "👁️ Thu gọn";
+      });
+    }
+
+    // Hàm quy đổi thời gian thực đo được (giây) sang HM (Hundredth of a minute): (giây / 60) * 100, làm tròn thành số nguyên
+    function formatTiHm(secVal) {
+      if (secVal === undefined || secVal === "" || secVal === null) return "";
+      const num = parseFloat(secVal);
+      if (isNaN(num)) return secVal;
+      return Math.round((num / 60) * 100);
+    }
+
+    // --- RENDER BẢNG TÍNH THEO ĐÚNG CẤU TRÚC 4 HÀNG CỦA FORM MẪU ---
+    // Hàng 1: No(rowspan=4), Process(rowspan=3), Ref(rowspan=4), Measured(rowspan=4), "nhận xét", Cycles...
+    // Hàng 2: "L", Cycles...
+    // Hàng 3: "ti(hm)", Cycles...
+    // Hàng 4: Measuring point(rowspan=1), "F (thời gian của video)", Cycles...
+    function renderTable() {
+      renderCycleHeaders();
+      tableBody.innerHTML = "";
+
+      state.steps.forEach((step, sIdx) => {
+        const isActive = sIdx === state.currentStepIndex;
+
+        // --- SUB-ROW 1: NHẬN XÉT ---
+        const trNx = document.createElement("tr");
+        trNx.className = `row-nx ${isActive ? 'active-step-row' : ''}`;
+
+        trNx.innerHTML = `
+          <!-- No (chiếm cả 4 hàng) -->
+          <td rowspan="4" class="col-no ${isActive ? 'active-step-indicator' : ''}">${step.no}</td>
+          
+          <!-- Tên bước (chiếm 3 hàng đầu) -->
+          <td rowspan="3" class="col-process-top cell-editable" contenteditable="true" title="Bấm vào để sửa tên bước" data-field="process" data-sidx="${sIdx}">
+            ${step.process}
+          </td>
+          
+          <!-- Ref Qty (chiếm cả 4 hàng) -->
+          <td rowspan="4" class="col-ref cell-editable" contenteditable="true" title="Bấm để sửa Ref Qty" data-field="refQty" data-sidx="${sIdx}">
+            ${step.refQty}
+          </td>
+          
+          <!-- Measured values (chiếm cả 4 hàng, tự do nhập tay không tự tính) -->
+          <td rowspan="4" class="col-measured cell-editable" contenteditable="true" title="Bấm để nhập Measured values" data-field="measuredValue" data-sidx="${sIdx}">
+            ${step.measuredValue || ""}
+          </td>
+          
+          <!-- Cy / mt: Nhận xét -->
+          <td class="col-cymt">Nhận xét</td>
+        `;
+
+        for (let c = 1; c <= state.totalCycles; c++) {
+          const key = `${sIdx}_cy${c}`;
+          const val = state.cyclesData[key]?.nx ?? "";
+          const td = document.createElement("td");
+          td.className = "col-cy cell-editable";
+          td.id = `cell_${sIdx}_cy${c}_nx`;
+          td.contentEditable = "true";
+          td.textContent = val;
+          if (c === state.currentCycle && isActive) {
+            td.classList.add("cell-active-measuring");
+          }
+          const activateCell = () => {
+            updateSidebarValues(sIdx, c);
+            highlightInspectedCell(sIdx, c);
+          };
+          td.addEventListener("click", activateCell);
+          td.addEventListener("focus", activateCell);
+
+          const handleNx = (e) => {
+            if (!state.cyclesData[key]) state.cyclesData[key] = { L: "", ti: "", F: "", nx: "" };
+            state.cyclesData[key].nx = e.target.textContent.trim();
+            if (sIdx === inspectedTarget.sIdx && c === inspectedTarget.cy) {
+              updateSidebarValues(sIdx, c);
+            }
+            saveState();
+          };
+          td.addEventListener("input", handleNx);
+          td.addEventListener("blur", handleNx);
+          trNx.appendChild(td);
+        }
+
+        // Cột Xóa (chiếm cả 4 hàng)
+        const tdDel = document.createElement("td");
+        tdDel.rowSpan = 4;
+        tdDel.className = "col-action";
+        tdDel.innerHTML = `<button class="btn-trash" title="Xóa bước ${step.no}" onclick="deleteStep(${sIdx})">🗑️</button>`;
+        trNx.appendChild(tdDel);
+
+        tableBody.appendChild(trNx);
+
+        // --- SUB-ROW 2: L ---
+        const trL = document.createElement("tr");
+        trL.className = `row-l ${isActive ? 'active-step-row' : ''}`;
+        trL.innerHTML = `<td class="col-cymt" style="font-weight: 700;">L</td>`;
+        for (let c = 1; c <= state.totalCycles; c++) {
+          const key = `${sIdx}_cy${c}`;
+          const val = state.cyclesData[key]?.L ?? "";
+          const td = document.createElement("td");
+          td.className = "col-cy cell-editable";
+          td.id = `cell_${sIdx}_cy${c}_L`;
+          td.contentEditable = "true";
+          td.textContent = val;
+          if (c === state.currentCycle && isActive) {
+            td.classList.add("cell-active-measuring");
+          }
+          const activateCell = () => {
+            updateSidebarValues(sIdx, c);
+            highlightInspectedCell(sIdx, c);
+          };
+          td.addEventListener("click", activateCell);
+          td.addEventListener("focus", activateCell);
+
+          const handleL = (e) => {
+            if (!state.cyclesData[key]) state.cyclesData[key] = { L: "", ti: "", F: "", nx: "" };
+            const text = e.target.textContent.trim().replace(',', '.');
+            state.cyclesData[key].L = text !== "" ? (!isNaN(parseFloat(text)) ? parseFloat(text) : text) : "";
+            if (sIdx === inspectedTarget.sIdx && c === inspectedTarget.cy) {
+              updateSidebarValues(sIdx, c);
+            }
+            saveState();
+          };
+          td.addEventListener("input", handleL);
+          td.addEventListener("blur", handleL);
+          trL.appendChild(td);
+        }
+
+        tableBody.appendChild(trL);
+
+        // --- SUB-ROW 3: ti(hm) (thời gian tính theo HM: giây / 60 * 100) ---
+        const trTi = document.createElement("tr");
+        trTi.className = `row-ti ${isActive ? 'active-step-row' : ''}`;
+        trTi.innerHTML = `<td class="col-cymt">ti(hm)</td>`;
+        for (let c = 1; c <= state.totalCycles; c++) {
+          const key = `${sIdx}_cy${c}`;
+          const val = state.cyclesData[key]?.ti !== undefined ? state.cyclesData[key].ti : "";
+          const td = document.createElement("td");
+          td.className = "col-cy cell-editable";
+          td.id = `cell_${sIdx}_cy${c}_ti`;
+          td.contentEditable = "true";
+          td.style.fontWeight = "600";
+          td.textContent = val !== "" ? formatTiHm(val) : "";
+          if (c === state.currentCycle && isActive) {
+            td.classList.add("cell-active-measuring");
+          }
+          const activateCell = () => {
+            updateSidebarValues(sIdx, c);
+            highlightInspectedCell(sIdx, c);
+          };
+          td.addEventListener("click", activateCell);
+          td.addEventListener("focus", activateCell);
+
+          const handleTi = (e) => {
+            if (!state.cyclesData[key]) state.cyclesData[key] = { L: "", ti: "", F: "", nx: "" };
+            const text = e.target.textContent.trim().replace(',', '.');
+            const num = parseFloat(text);
+            if (text !== "" && !isNaN(num)) {
+              // Quy đổi giá trị hm về giây (giây = hm * 60 / 100 = hm * 0.6) để lưu trữ và hiển thị ở sidebar
+              state.cyclesData[key].ti = Math.round((num * 0.6) * 10) / 10;
+            } else {
+              state.cyclesData[key].ti = text;
+            }
+            if (sIdx === inspectedTarget.sIdx && c === inspectedTarget.cy) {
+              updateSidebarValues(sIdx, c);
+            }
+            saveState();
+          };
+          td.addEventListener("input", handleTi);
+          td.addEventListener("blur", handleTi);
+          trTi.appendChild(td);
+        }
+
+        tableBody.appendChild(trTi);
+
+        // --- SUB-ROW 4: Mốc dừng (chiếm 1 hàng cuối) & F (thời gian của video) ---
+        const trF = document.createElement("tr");
+        trF.className = `row-f ${isActive ? 'active-step-row' : ''}`;
+        trF.innerHTML = `
+          <!-- Measuring point (chiếm 1 hàng cuối, nằm ngay dưới Tên bước) -->
+          <td class="col-measuring-bot cell-editable" contenteditable="true" title="Bấm vào để sửa mốc dừng" data-field="measuringPoint" data-sidx="${sIdx}">
+            ${step.measuringPoint}
+          </td>
+          <td class="col-cymt">F</td>
+        `;
+        for (let c = 1; c <= state.totalCycles; c++) {
+          const key = `${sIdx}_cy${c}`;
+          const val = state.cyclesData[key]?.F !== undefined ? state.cyclesData[key].F : "";
+          const td = document.createElement("td");
+          td.className = "col-cy cell-editable";
+          td.id = `cell_${sIdx}_cy${c}_F`;
+          td.contentEditable = "true";
+          td.style.color = "#15803d";
+          td.textContent = val !== "" ? (typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : val) : "";
+          if (c === state.currentCycle && isActive) {
+            td.classList.add("cell-active-measuring");
+          }
+          const activateCell = () => {
+            updateSidebarValues(sIdx, c);
+            highlightInspectedCell(sIdx, c);
+          };
+          td.addEventListener("click", activateCell);
+          td.addEventListener("focus", activateCell);
+
+          const handleF = (e) => {
+            if (!state.cyclesData[key]) state.cyclesData[key] = { L: "", ti: "", F: "", nx: "" };
+            const text = e.target.textContent.trim().replace(',', '.');
+            const num = parseFloat(text);
+            const savedVal = text !== "" ? (!isNaN(num) ? num : text) : "";
+            state.cyclesData[key].F = savedVal;
+
+            // Nếu người dùng vừa sửa F của bước liền trước bước đang kích hoạt trong cùng chu kỳ,
+            // cập nhật luôn mốc stepStartTime của bước tiếp theo để đo chính xác
+            if (c === state.currentCycle && sIdx === state.currentStepIndex - 1 && typeof savedVal === 'number') {
+              state.stepStartTime = savedVal;
+              updateCardInfo();
+            }
+            if (sIdx === inspectedTarget.sIdx && c === inspectedTarget.cy) {
+              updateSidebarValues(sIdx, c);
+            }
+            saveState();
+          };
+          td.addEventListener("input", handleF);
+          td.addEventListener("blur", handleF);
+          trF.appendChild(td);
+        }
+
+        // Bấm chọn nhanh dòng bất kỳ để kích hoạt bước đó
+        [trNx, trL, trTi, trF].forEach(tr => {
+          tr.addEventListener("click", (e) => {
+            if (e.target.closest(".btn-trash") || e.target.closest(".cell-editable")) return;
+            if (state.currentStepIndex !== sIdx) {
+              changeActiveStep(sIdx, state.currentCycle);
+            }
+          });
+        });
+
+        tableBody.appendChild(trF);
+      });
+
+      // Đánh dấu ô đang được thanh tra trên bảng
+      highlightInspectedCell(inspectedTarget.sIdx, inspectedTarget.cy);
+
+      // Lắng nghe sửa đổi trực tiếp tên bước / mốc dừng / refQty / measuredValue
+      document.querySelectorAll("[data-field]").forEach(el => {
+        el.addEventListener("blur", (e) => {
+          const sIdx = parseInt(e.target.dataset.sidx);
+          const field = e.target.dataset.field;
+          let text = e.target.textContent.trim();
+          if (field === "refQty") state.steps[sIdx].refQty = parseInt(text) || 1;
+          else state.steps[sIdx][field] = text;
+          updateCardInfo();
+          saveState();
+        });
+      });
+
+      // Khi người dùng bấm Enter trong ô đang sửa -> Hoàn tất lưu ô ngay mà không bị xuống dòng
+      tableBody.addEventListener("keydown", (e) => {
+        if (e.target.isContentEditable && e.key === "Enter") {
+          e.preventDefault();
+          e.target.blur();
+        }
+      });
+    }
+
+    // --- CÁC HÀM THÊM / XÓA BƯỚC & CHU KỲ ---
+    document.getElementById("btnAddStep").addEventListener("click", () => {
+      const nextNo = state.steps.length + 1;
+      state.steps.push({
+        no: nextNo,
+        process: `Thao tác mới bước ${nextNo}`,
+        measuringPoint: `Mốc dừng bước ${nextNo}`,
+        refQty: 1
+      });
+      renderTable();
+      saveState();
+    });
+
+    window.deleteStep = function (sIdx) {
+      if (state.steps.length <= 1) {
+        alert("Bảng phải có ít nhất 1 bước!");
+        return;
+      }
+      if (confirm(`Bạn có chắc muốn xóa Bước ${state.steps[sIdx].no}?`)) {
+        state.steps.splice(sIdx, 1);
+        state.steps.forEach((s, idx) => s.no = idx + 1);
+        if (state.currentStepIndex >= state.steps.length) {
+          state.currentStepIndex = state.steps.length - 1;
+        }
+        updateCardInfo();
+        renderTable();
+        saveState();
+      }
+    };
+
+    document.getElementById("btnAddCycle").addEventListener("click", () => {
+      state.totalCycles++;
+      renderCycleNav();
+      renderTable();
+      updatePresetButtons();
+      saveState();
+    });
+
+    document.getElementById("btnRemoveCycle").addEventListener("click", () => {
+      if (state.totalCycles <= 1) {
+        alert("Bảng phải có ít nhất 1 chu kỳ!");
+        return;
+      }
+      if (confirm(`Bạn có muốn bớt cột Chu kỳ Cy ${state.totalCycles} không?`)) {
+        if (state.currentCycle === state.totalCycles) {
+          state.currentCycle--;
+        }
+        state.totalCycles--;
+        renderCycleNav();
+        updateCardInfo();
+        renderTable();
+        updatePresetButtons();
+        saveState();
+      }
+    });
+
+    // --- LOGIC GHI MỐC THỜI GIAN & TÍNH TOÁN LIÊN TỤC ---
+    function handleRecordStamp() {
+      if (state.steps.length === 0) return;
+      const curTime = Math.round(video.currentTime * 10) / 10;
+      const sIdx = state.currentStepIndex;
+      const cy = state.currentCycle;
+
+      // 1. Nếu đang ở trạng thái tạm dừng chờ review sau khi kết thúc bước trước:
+      // Bấm Enter lần này sẽ tiếp tục phát video để đo bước hiện tại
+      if (state.isStepPausedWaiting) {
+        state.isStepPausedWaiting = false;
+        video.play();
+        updateStampButtonText();
+        saveState();
+        return;
+      }
+
+      // 2. Lần đầu tiên bấm: Lưu mốc Start cho bước (hoặc mốc Start của chu kỳ)
+      if (state.stepStartTime === null) {
+        state.history.push({
+          snapshot: JSON.parse(JSON.stringify(state.cyclesData)),
+          sIdx: sIdx,
+          cy: cy,
+          startTime: null,
+          isStepPausedWaiting: false
+        });
+        state.stepStartTime = curTime;
+        state.isStepPausedWaiting = false;
+        if (video.paused) {
+          video.play();
+        }
+        updateCardInfo();
+        saveState();
+        return;
+      }
+
+      // 3. Lần bấm kết thúc bước (Stop):
+      const startTime = state.stepStartTime;
+      const stopTime = curTime;
+      const delta = Math.max(0, Math.round((stopTime - startTime) * 10) / 10);
+
+      // Lưu lịch sử để có thể Undo (Ctrl + Z)
+      state.history.push({
+        snapshot: JSON.parse(JSON.stringify(state.cyclesData)),
+        sIdx: sIdx,
+        cy: cy,
+        startTime: state.stepStartTime,
+        isStepPausedWaiting: state.isStepPausedWaiting
+      });
+
+      // Tự động điền ti và F (người dùng vẫn tự do sửa trực tiếp trên bảng bất kỳ lúc nào)
+      const key = `${sIdx}_cy${cy}`;
+      if (!state.cyclesData[key]) {
+        state.cyclesData[key] = { nx: "", L: "", ti: delta, F: stopTime };
+      } else {
+        state.cyclesData[key].ti = delta;
+        state.cyclesData[key].F = stopTime;
+      }
+
+      // ĐẶT THẺ DỮ LIỆU ĐO HIỂN THỊ CHÍNH BƯỚC VỪA ĐO XONG
+      inspectedTarget = { sIdx: sIdx, cy: cy };
+
+      // TỰ ĐỘNG TẠM DỪNG VIDEO ĐỂ NGƯỜI DÙNG KỊP KIỂM TRA & GHI NHẬN XÉT!
+      video.pause();
+
+      // Mốc kết thúc bước này chính là mốc bắt đầu của bước tiếp theo!
+      state.stepStartTime = stopTime;
+
+      // Tự động chuyển bước kế tiếp
+      if (state.currentStepIndex < state.steps.length - 1) {
+        state.currentStepIndex++;
+        state.isStepPausedWaiting = true; // Kích hoạt trạng thái tạm dừng chờ review
+      } else {
+        // Hết tất cả các bước trong chu kỳ hiện tại -> chuyển sang chu kỳ mới
+        state.isStepPausedWaiting = false;
+        if (state.currentCycle < state.totalCycles) {
+          state.currentCycle++;
+          state.currentStepIndex = 0;
+          state.stepStartTime = null; // Chu kỳ mới sẽ yêu cầu bấm Start mốc ban đầu
+          renderCycleNav();
+        } else {
+          state.stepStartTime = null;
+        }
+      }
+
+      updateCardInfo();
+      renderTable();
+      saveState();
+
+      // Tự động nhảy con chuột tới ô ghi chú nhận xét để người dùng gõ ngay
+      setTimeout(() => {
+        const sideValNx = document.getElementById("sideValNx");
+        if (sideValNx) {
+          sideValNx.focus();
+          sideValNx.select();
+        }
+      }, 50);
+
+      const activeEl = document.querySelector(".active-step-row");
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    btnRecordStamp.addEventListener("click", handleRecordStamp);
+
+    function changeActiveStep(newIdx, newCy = state.currentCycle) {
+      state.currentStepIndex = newIdx;
+      state.currentCycle = newCy;
+      state.isStepPausedWaiting = false;
+      inspectedTarget = { sIdx: newIdx, cy: newCy };
+      if (newIdx > 0) {
+        const prevKey = `${newIdx - 1}_cy${newCy}`;
+        const prevF = state.cyclesData[prevKey]?.F;
+        if (prevF !== undefined && prevF !== "" && !isNaN(parseFloat(prevF))) {
+          state.stepStartTime = parseFloat(prevF);
+        } else {
+          state.stepStartTime = null;
+        }
+      } else {
+        state.stepStartTime = null;
+      }
+      updateCardInfo();
+      renderCycleNav();
+      renderTable();
+      saveState();
+    }
+
+    // Chuyển bước trước / sau
+    document.getElementById("btnPrevStep").addEventListener("click", () => {
+      if (state.currentStepIndex > 0) {
+        changeActiveStep(state.currentStepIndex - 1);
+      }
+    });
+
+    document.getElementById("btnNextStep").addEventListener("click", () => {
+      if (state.currentStepIndex < state.steps.length - 1) {
+        changeActiveStep(state.currentStepIndex + 1);
+      }
+    });
+
+    // Phím tắt bàn phím
+    window.addEventListener("keydown", (e) => {
+      if (e.target.contentEditable === "true" || e.target.tagName === "INPUT") return;
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        btnPlayPause.click();
+      } else if (e.code === "Enter") {
+        e.preventDefault();
+        handleRecordStamp();
+      } else if (e.code === "ArrowLeft") {
+        e.preventDefault();
+        document.getElementById("btnBack1s").click();
+      } else if (e.code === "ArrowRight") {
+        e.preventDefault();
+        document.getElementById("btnFwd1s").click();
+      } else if (e.code === "ArrowUp") {
+        e.preventDefault();
+        document.getElementById("btnPrevStep").click();
+      } else if (e.code === "ArrowDown") {
+        e.preventDefault();
+        document.getElementById("btnNextStep").click();
+      } else if (e.ctrlKey && e.code === "KeyZ") {
+        e.preventDefault();
+        if (state.history.length > 0) {
+          const last = state.history.pop();
+          state.cyclesData = last.snapshot;
+          state.currentStepIndex = last.sIdx;
+          state.currentCycle = last.cy;
+          state.stepStartTime = last.startTime ?? null;
+          state.isStepPausedWaiting = last.isStepPausedWaiting || false;
+          inspectedTarget = { sIdx: last.sIdx, cy: last.cy };
+          renderCycleNav();
+          updateCardInfo();
+          renderTable();
+          saveState();
+        }
+      }
+    });
+
+    function escapeXml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    }
+
+    // Xuất File Excel (.xls) CHUẨN FORM MẪU 4 HÀNG & MÀU VÀNG
+    document.getElementById("btnExportExcel").addEventListener("click", () => {
+      let cycleHeaderXml = "";
+      for (let c = 1; c <= state.totalCycles; c++) {
+        cycleHeaderXml += `<Cell ss:StyleID="Header"><Data ss:Type="String">${c}</Data></Cell>`;
+      }
+
+      let rowsXml = "";
+      state.steps.forEach((step, sIdx) => {
+        // Hàng 1: No, Process, Ref, Measured values, "nhận xét", Cycles...
+        let rowNx = `
+          <Cell ss:MergeDown="3" ss:StyleID="YellowCenterBold"><Data ss:Type="Number">${step.no}</Data></Cell>
+          <Cell ss:MergeDown="2" ss:StyleID="YellowTextLeft"><Data ss:Type="String">${escapeXml(step.process)}</Data></Cell>
+          <Cell ss:MergeDown="3" ss:StyleID="YellowRefQty"><Data ss:Type="Number">${step.refQty}</Data></Cell>
+          <Cell ss:MergeDown="3" ss:StyleID="YellowCenter"><Data ss:Type="String">${escapeXml(step.measuredValue || "")}</Data></Cell>
+          <Cell ss:StyleID="WhiteTextLeft"><Data ss:Type="String">Nhận xét</Data></Cell>
+        `;
+        for (let c = 1; c <= state.totalCycles; c++) {
+          const val = state.cyclesData[`${sIdx}_cy${c}`]?.nx ?? "";
+          rowNx += `<Cell ss:StyleID="YellowCell"><Data ss:Type="String">${escapeXml(val)}</Data></Cell>`;
+        }
+        rowsXml += `<Row ss:Height="22">${rowNx}</Row>`;
+
+        // Hàng 2: L, Cycles...
+        let rowL = `<Cell ss:Index="5" ss:StyleID="WhiteTextLeftBold"><Data ss:Type="String">L</Data></Cell>`;
+        for (let c = 1; c <= state.totalCycles; c++) {
+          const val = state.cyclesData[`${sIdx}_cy${c}`]?.L ?? "";
+          rowL += `<Cell ss:StyleID="YellowCell"><Data ss:Type="${val !== "" ? "Number" : "String"}">${val}</Data></Cell>`;
+        }
+        rowsXml += `<Row ss:Height="22">${rowL}</Row>`;
+
+        // Hàng 3: ti(hm), Cycles...
+        let rowTi = `<Cell ss:Index="5" ss:StyleID="WhiteTextLeft"><Data ss:Type="String">ti(hm)</Data></Cell>`;
+        for (let c = 1; c <= state.totalCycles; c++) {
+          const val = state.cyclesData[`${sIdx}_cy${c}`]?.ti ?? "";
+          const hmVal = (val !== "" && !isNaN(parseFloat(val))) ? formatTiHm(val) : val;
+          rowTi += `<Cell ss:StyleID="YellowTiCell"><Data ss:Type="${hmVal !== "" && typeof hmVal === 'number' ? "Number" : "String"}">${hmVal}</Data></Cell>`;
+        }
+        rowsXml += `<Row ss:Height="22">${rowTi}</Row>`;
+
+        // Hàng 4: Measuring point & F (thời gian của video), Cycles...
+        let rowF = `
+          <Cell ss:Index="2" ss:StyleID="YellowTextLeft"><Data ss:Type="String">${escapeXml(step.measuringPoint)}</Data></Cell>
+          <Cell ss:Index="5" ss:StyleID="WhiteTextLeft"><Data ss:Type="String">F</Data></Cell>
+        `;
+        for (let c = 1; c <= state.totalCycles; c++) {
+          const val = state.cyclesData[`${sIdx}_cy${c}`]?.F !== undefined ? state.cyclesData[`${sIdx}_cy${c}`].F.toFixed(1) : "";
+          rowF += `<Cell ss:StyleID="YellowFCell"><Data ss:Type="${val !== "" ? "Number" : "String"}">${val}</Data></Cell>`;
+        }
+        rowsXml += `<Row ss:Height="22">${rowF}</Row>`;
+      });
+
+      const excelTemplate = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#71717A"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#71717A"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#71717A"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#71717A"/>
+   </Borders>
+   <Font ss:FontName="Segoe UI" ss:Size="10"/>
+  </Style>
+  <Style ss:ID="Header">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Font ss:FontName="Segoe UI" ss:Size="10" ss:Bold="1" ss:Color="#0F172A"/>
+   <Interior ss:Color="#F1F5F9" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="YellowCenterBold">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Font ss:FontName="Segoe UI" ss:Size="10" ss:Bold="1"/>
+   <Interior ss:Color="#FFFFCC" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="YellowTextLeft">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Font ss:FontName="Segoe UI" ss:Size="10"/>
+   <Interior ss:Color="#FFFFCC" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="YellowRefQty">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Font ss:FontName="Segoe UI" ss:Size="10" ss:Bold="1" ss:Color="#1E40AF"/>
+   <Interior ss:Color="#FFFFCC" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="YellowCenter">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Interior ss:Color="#FFFFCC" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="YellowCell">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Interior ss:Color="#FFFFCC" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="YellowTiCell">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Font ss:FontName="Segoe UI" ss:Size="10" ss:Bold="1"/>
+   <Interior ss:Color="#FFFFCC" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="YellowFCell">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Font ss:FontName="Segoe UI" ss:Size="10" ss:Color="#15803D"/>
+   <Interior ss:Color="#FFFFCC" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="WhiteTextLeft">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Font ss:FontName="Segoe UI" ss:Size="9.5"/>
+   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="WhiteTextLeftBold">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>
+   <Font ss:FontName="Segoe UI" ss:Size="9.5" ss:Bold="1"/>
+   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+  </Style>
+  </Styles>
+  <Worksheet ss:Name="Time Study">
+   <Table ss:DefaultRowHeight="20">
+    <Column ss:Width="30"/>
+    <Column ss:Width="260"/>
+    <Column ss:Width="45"/>
+    <Column ss:Width="65"/>
+    <Column ss:Width="125"/>
+    <Column ss:Width="40" ss:Span="${state.totalCycles - 1}"/>
+    <Row ss:Height="24">
+     <Cell ss:MergeDown="1" ss:StyleID="Header"><Data ss:Type="String">No.</Data></Cell>
+     <Cell ss:MergeDown="1" ss:StyleID="Header"><Data ss:Type="String">Process sequence and measuring point</Data></Cell>
+     <Cell ss:MergeDown="1" ss:StyleID="Header"><Data ss:Type="String">Ref.&#10;Quantity</Data></Cell>
+     <Cell ss:MergeDown="1" ss:StyleID="Header"><Data ss:Type="String">Measured&#10;values</Data></Cell>
+     <Cell ss:MergeDown="1" ss:StyleID="Header"><Data ss:Type="String">Cy&#10;mt</Data></Cell>
+     <Cell ss:MergeAcross="${state.totalCycles - 1}" ss:StyleID="Header"><Data ss:Type="String">Cycles (Chu kỳ thao tác)</Data></Cell>
+    </Row>
+   <Row ss:Height="20">
+    <Cell ss:Index="6" ss:StyleID="Header"><Data ss:Type="String">1</Data></Cell>
+    ${cycleHeaderXml.replace('<Cell ss:StyleID="Header"><Data ss:Type="String">1</Data></Cell>', '')}
+   </Row>
+   ${rowsXml}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+      const blob = new Blob([excelTemplate], { type: "application/vnd.ms-excel;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `TimeStudy_${new Date().toISOString().slice(0, 10)}.xls`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // Làm mới
+    document.getElementById("btnResetData").addEventListener("click", () => {
+      if (confirm("Bạn có chắc muốn đặt lại bảng theo mẫu chuẩn (7 bước, 15 chu kỳ)?")) {
+        localStorage.removeItem(STORAGE_KEY);
+        state.steps = JSON.parse(JSON.stringify(INITIAL_STEPS));
+        state.totalCycles = 15;
+        state.cyclesData = JSON.parse(JSON.stringify(INITIAL_CYCLES_DATA));
+        state.currentCycle = 1;
+        state.currentStepIndex = 0;
+        state.stepStartTime = null;
+        state.isStepPausedWaiting = false;
+        inspectedTarget = { sIdx: 0, cy: 1 };
+        state.history = [];
+        renderCycleNav();
+        updateCardInfo();
+        renderTable();
+        updatePresetButtons();
+      }
+    });
+
+    // Modal Phím Tắt
+    const helpModal = document.getElementById("helpModal");
+    document.getElementById("btnOpenHelp").addEventListener("click", () => { helpModal.style.display = "flex"; });
+    document.getElementById("btnCloseHelp").addEventListener("click", () => { helpModal.style.display = "none"; });
+    document.getElementById("btnCloseHelpX").addEventListener("click", () => { helpModal.style.display = "none"; });
+    helpModal.addEventListener("click", (e) => { if (e.target === helpModal) helpModal.style.display = "none"; });
+
+    // Nhấp vào mốc Start trên thẻ bước để đổi hoặc chọn lại mốc
+    const startBadgeEl = document.getElementById("currentStartBadge");
+    if (startBadgeEl) {
+      startBadgeEl.addEventListener("click", () => {
+        if (confirm("Bạn có muốn đặt lại mốc Start cho bước hiện tại không?")) {
+          state.stepStartTime = null;
+          updateCardInfo();
+          saveState();
+        }
+      });
+    }
+
+    // Lưu file dự án (.json) để sao lưu hoặc chuyển máy
+    document.getElementById("btnSaveProject").addEventListener("click", () => {
+      const dataToSave = {
+        tool: "VideoTimeStudy",
+        version: "1.0",
+        savedAt: new Date().toISOString(),
+        steps: state.steps,
+        totalCycles: state.totalCycles,
+        cyclesData: state.cyclesData,
+        currentCycle: state.currentCycle,
+        currentStepIndex: state.currentStepIndex
+      };
+      const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `TimeStudy_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // Mở file dự án (.json) đã lưu
+    document.getElementById("projectFileInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          if (parsed.steps && Array.isArray(parsed.steps)) {
+            state.steps = parsed.steps;
+            if (parsed.totalCycles) state.totalCycles = parsed.totalCycles;
+            if (parsed.cyclesData) state.cyclesData = parsed.cyclesData;
+            state.currentCycle = parsed.currentCycle || 1;
+            state.currentStepIndex = parsed.currentStepIndex || 0;
+            state.stepStartTime = null;
+            state.history = [];
+            renderCycleNav();
+            updateCardInfo();
+            renderTable();
+            updatePresetButtons();
+            saveState();
+            alert("✅ Đã nạp thành công file dự án!");
+          } else {
+            alert("❌ File không đúng định dạng dự án Time Study!");
+          }
+        } catch (err) {
+          alert("❌ Lỗi khi đọc file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+
+    // --- XỬ LÝ THANH KÉO TÙY CHỈNH ĐỘ CAO (SPLIT RESIZER) ---
+    (function initSplitResizer() {
+      const resizer = document.getElementById("splitResizer");
+      const topPanel = document.querySelector(".top-panel");
+      if (!resizer || !topPanel) return;
+
+      const RESIZE_STORAGE_KEY = "IE_TIMESTUDY_TOP_HEIGHT";
+
+      // Khôi phục chiều cao đã lưu từ phiên làm việc trước
+      const savedHeight = localStorage.getItem(RESIZE_STORAGE_KEY);
+      if (savedHeight) {
+        const h = parseInt(savedHeight, 10);
+        if (!isNaN(h) && h >= 160 && h <= window.innerHeight - 160) {
+          topPanel.style.height = `${h}px`;
+        }
+      }
+
+      let isDragging = false;
+      let startY = 0;
+      let startHeight = 0;
+
+      resizer.addEventListener("pointerdown", (e) => {
+        isDragging = true;
+        startY = e.clientY;
+        startHeight = topPanel.getBoundingClientRect().height;
+        resizer.classList.add("is-dragging");
+        document.body.classList.add("is-resizing");
+        resizer.setPointerCapture(e.pointerId);
+      });
+
+      resizer.addEventListener("pointermove", (e) => {
+        if (!isDragging) return;
+        const delta = e.clientY - startY;
+        const minTop = 160;
+        const maxTop = window.innerHeight - 160; // Đảm bảo bảng dưới còn ít nhất 160px
+        const newHeight = Math.min(Math.max(startHeight + delta, minTop), maxTop);
+        topPanel.style.height = `${newHeight}px`;
+      });
+
+      function stopResizing(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        resizer.classList.remove("is-dragging");
+        document.body.classList.remove("is-resizing");
+        try { resizer.releasePointerCapture(e.pointerId); } catch (_) { }
+        const finalHeight = Math.round(topPanel.getBoundingClientRect().height);
+        localStorage.setItem(RESIZE_STORAGE_KEY, finalHeight);
+      }
+
+      resizer.addEventListener("pointerup", stopResizing);
+      resizer.addEventListener("pointercancel", stopResizing);
+
+      // Nhấp đúp để đặt lại kích thước mặc định cân đối (48vh)
+      resizer.addEventListener("dblclick", () => {
+        topPanel.style.height = "48vh";
+        localStorage.removeItem(RESIZE_STORAGE_KEY);
+      });
+    })();
+
+    // --- XỬ LÝ THANH KÉO DỌC ĐIỀU CHỈNH ĐỘ RỘNG VIDEO & BẢNG ĐIỀU KHIỂN (VIDEO RESIZER) ---
+    (function initVideoResizer() {
+      const resizer = document.getElementById("videoResizer");
+      const sidebar = document.getElementById("controlsSidebar");
+      const topPanel = document.querySelector(".top-panel");
+      if (!resizer || !sidebar || !topPanel) return;
+
+      const SIDEBAR_W_KEY = "TIMESTUDY_SIDEBAR_WIDTH";
+
+      // Khôi phục độ rộng đã lưu từ trước
+      const savedWidth = localStorage.getItem(SIDEBAR_W_KEY);
+      if (savedWidth) {
+        const w = parseInt(savedWidth, 10);
+        if (!isNaN(w) && w >= 250 && w <= 650) {
+          sidebar.style.width = `${w}px`;
+        }
+      }
+
+      let isDragging = false;
+      let startX = 0;
+      let startWidth = 0;
+
+      resizer.addEventListener("pointerdown", (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startWidth = sidebar.getBoundingClientRect().width;
+        resizer.classList.add("is-dragging");
+        document.body.classList.add("is-col-resizing");
+        resizer.setPointerCapture(e.pointerId);
+      });
+
+      resizer.addEventListener("pointermove", (e) => {
+        if (!isDragging) return;
+        const delta = e.clientX - startX;
+        // Kéo sang phải (delta > 0) -> video nở to ra, sidebar thu nhỏ lại
+        // Kéo sang trái (delta < 0) -> video thu nhỏ lại, sidebar mở rộng
+        const minSidebar = 250;
+        const totalTopW = topPanel.getBoundingClientRect().width;
+        const maxSidebar = Math.min(650, totalTopW - 320); // Đảm bảo khung video còn ít nhất 320px
+        const newWidth = Math.min(Math.max(startWidth - delta, minSidebar), maxSidebar);
+        sidebar.style.width = `${newWidth}px`;
+      });
+
+      function stopResizing(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        resizer.classList.remove("is-dragging");
+        document.body.classList.remove("is-col-resizing");
+        try { resizer.releasePointerCapture(e.pointerId); } catch (_) { }
+        const finalWidth = Math.round(sidebar.getBoundingClientRect().width);
+        localStorage.setItem(SIDEBAR_W_KEY, finalWidth);
+      }
+
+      resizer.addEventListener("pointerup", stopResizing);
+      resizer.addEventListener("pointercancel", stopResizing);
+
+      // Nhấp đúp để đặt lại độ rộng mặc định cân đối (340px)
+      resizer.addEventListener("dblclick", () => {
+        sidebar.style.width = "340px";
+        localStorage.removeItem(SIDEBAR_W_KEY);
+      });
+    })();
+
+    function updatePresetButtons() {
+      document.querySelectorAll(".btn-cy-preset").forEach(btn => {
+        const c = parseInt(btn.dataset.cycles);
+        if (c === state.totalCycles) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+    }
+
+    // --- XỬ LÝ THANH KÉO DỌC ĐIỀU CHỈNH SỐ CHU KỲ BÊN PHẢI (VERTICAL CYCLE RESIZER) ---
+    (function initVerticalCycleResizer() {
+      const resizer = document.getElementById("verticalCycleResizer");
+      const tooltip = document.getElementById("vResizerTooltip");
+      const thCycles = document.getElementById("thCyclesTitle");
+      if (!resizer || !thCycles) return;
+
+      let isDragging = false;
+
+      resizer.addEventListener("pointerdown", (e) => {
+        isDragging = true;
+        resizer.classList.add("is-dragging");
+        document.body.classList.add("is-col-resizing");
+        if (tooltip) {
+          tooltip.textContent = `📊 ${state.totalCycles} Chu kỳ (Kéo sang trái về 8 cho gọn)`;
+          tooltip.style.left = `${e.clientX}px`;
+          tooltip.style.top = `${e.clientY}px`;
+          tooltip.classList.add("show");
+        }
+        resizer.setPointerCapture(e.pointerId);
+      });
+
+      resizer.addEventListener("pointermove", (e) => {
+        if (!isDragging) return;
+        if (tooltip) {
+          tooltip.style.left = `${e.clientX}px`;
+          tooltip.style.top = `${e.clientY}px`;
+        }
+
+        const cycleStartX = thCycles.getBoundingClientRect().left;
+        const currentWidth = Math.max(0, e.clientX - cycleStartX);
+        const colWidth = 44; // bề rộng 1 cột chu kỳ
+        let targetCycles = Math.round(currentWidth / colWidth);
+        targetCycles = Math.max(1, Math.min(30, targetCycles));
+
+        if (tooltip) {
+          tooltip.textContent = `📊 ${targetCycles} Chu kỳ (Cy 1 → Cy ${targetCycles})`;
+        }
+
+        if (targetCycles !== state.totalCycles) {
+          state.totalCycles = targetCycles;
+          if (state.currentCycle > state.totalCycles) state.currentCycle = state.totalCycles;
+          renderCycleNav();
+          updateCardInfo();
+          renderTable();
+          updatePresetButtons();
+        }
+      });
+
+      function stopResizing(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        resizer.classList.remove("is-dragging");
+        document.body.classList.remove("is-col-resizing");
+        if (tooltip) tooltip.classList.remove("show");
+        try { resizer.releasePointerCapture(e.pointerId); } catch (_) { }
+        saveState();
+      }
+
+      resizer.addEventListener("pointerup", stopResizing);
+      resizer.addEventListener("pointercancel", stopResizing);
+
+      // Nhấp đúp để chuyển đổi nhanh giữa 8 chu kỳ (gọn gàng) và 15 chu kỳ
+      resizer.addEventListener("dblclick", () => {
+        state.totalCycles = state.totalCycles === 8 ? 15 : 8;
+        if (state.currentCycle > state.totalCycles) state.currentCycle = state.totalCycles;
+        renderCycleNav();
+        updateCardInfo();
+        renderTable();
+        updatePresetButtons();
+        saveState();
+      });
+
+      // Lắng nghe các nút chọn nhanh chu kỳ
+      document.querySelectorAll(".btn-cy-preset").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const cy = parseInt(btn.dataset.cycles);
+          if (cy && cy > 0) {
+            state.totalCycles = cy;
+            if (state.currentCycle > state.totalCycles) state.currentCycle = state.totalCycles;
+            renderCycleNav();
+            updateCardInfo();
+            renderTable();
+            updatePresetButtons();
+            saveState();
+          }
+        });
+      });
+    })();
+
+    // --- QUẢN LÝ NHẬN XÉT MẪU (PRESET CRUD) & AUTOCOMPLETE DROPDOWNS ---
+    const DEFAULT_NX_PRESETS = [
+      "Thao tác chuẩn, dứt khoát",
+      "Thao tác ngắt quãng, chậm",
+      "Tìm kiếm dụng cụ / chi tiết",
+      "Thao tác lại / Phải chỉnh sửa",
+      "Di chuyển thừa / Xoay trở",
+      "Vướng vật cản / Chờ đợi"
+    ];
+
+    const L_PRESETS = [50, 60, 70, 80, 90, 100, 110, 120];
+
+    function getNxPresets() {
+      const stored = localStorage.getItem("IE_TIMESTUDY_NX_PRESETS");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) { }
+      }
+      return [...DEFAULT_NX_PRESETS];
+    }
+
+    function saveNxPresets(presets) {
+      localStorage.setItem("IE_TIMESTUDY_NX_PRESETS", JSON.stringify(presets));
+    }
+
+    function initNxPresetCrud() {
+      const modal = document.getElementById("presetNxModal");
+      const btnManage = document.getElementById("btnManageNxPresets");
+      const btnCloseX = document.getElementById("btnCloseNxModalX");
+      const btnClose = document.getElementById("btnCloseNxModal");
+      const btnAdd = document.getElementById("btnAddNxPreset");
+      const btnRestore = document.getElementById("btnRestoreDefaultNx");
+      const inputNew = document.getElementById("inputNewNxPreset");
+      const crudList = document.getElementById("nxPresetCrudList");
+
+      if (!modal) return;
+
+      function renderCrudList() {
+        const presets = getNxPresets();
+        if (presets.length === 0) {
+          crudList.innerHTML = `<div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Chưa có nhận xét mẫu nào.</div>`;
+          return;
+        }
+        crudList.innerHTML = presets.map((p, idx) => `
+          <div class="preset-crud-item">
+            <span class="preset-crud-text">${p}</span>
+            <div class="preset-crud-actions">
+              <button type="button" class="btn-sm-action btn-edit-nx" data-idx="${idx}">✏️ Sửa</button>
+              <button type="button" class="btn-sm-action btn-sm-danger btn-del-nx" data-idx="${idx}">🗑️ Xóa</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function openModal() {
+        renderCrudList();
+        modal.style.display = "flex";
+      }
+
+      function closeModal() {
+        modal.style.display = "none";
+      }
+
+      if (btnManage) btnManage.addEventListener("click", openModal);
+      if (btnCloseX) btnCloseX.addEventListener("click", closeModal);
+      if (btnClose) btnClose.addEventListener("click", closeModal);
+
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      if (btnAdd) {
+        btnAdd.addEventListener("click", () => {
+          const val = inputNew.value.trim();
+          if (!val) return;
+          const presets = getNxPresets();
+          presets.push(val);
+          saveNxPresets(presets);
+          inputNew.value = "";
+          renderCrudList();
+        });
+        inputNew.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            btnAdd.click();
+          }
+        });
+      }
+
+      if (btnRestore) {
+        btnRestore.addEventListener("click", () => {
+          if (confirm("Khôi phục danh sách nhận xét mẫu về mặc định ban đầu?")) {
+            saveNxPresets([...DEFAULT_NX_PRESETS]);
+            renderCrudList();
+          }
+        });
+      }
+
+      if (crudList) {
+        crudList.addEventListener("click", (e) => {
+          const editBtn = e.target.closest(".btn-edit-nx");
+          const delBtn = e.target.closest(".btn-del-nx");
+          const presets = getNxPresets();
+
+          if (editBtn) {
+            const idx = parseInt(editBtn.dataset.idx, 10);
+            const currentVal = presets[idx];
+            const newVal = prompt("Chỉnh sửa nhận xét mẫu:", currentVal);
+            if (newVal !== null && newVal.trim() !== "") {
+              presets[idx] = newVal.trim();
+              saveNxPresets(presets);
+              renderCrudList();
+            }
+          } else if (delBtn) {
+            const idx = parseInt(delBtn.dataset.idx, 10);
+            if (confirm(`Xóa nhận xét "${presets[idx]}"?`)) {
+              presets.splice(idx, 1);
+              saveNxPresets(presets);
+              renderCrudList();
+            }
+          }
+        });
+      }
+    }
+
+    function initNxSuggestDropdown() {
+      const input = document.getElementById("sideValNx");
+      const dropdown = document.getElementById("nxSuggestDropdown");
+      const btnManage = document.getElementById("btnManageNxPresets");
+      if (!input || !dropdown) return;
+
+      let activeIdx = -1;
+
+      function renderDropdown(filterText = "") {
+        const presets = getNxPresets();
+        const query = filterText.trim().toLowerCase();
+        const matches = query ? presets.filter(p => p.toLowerCase().includes(query)) : presets;
+
+        if (matches.length === 0) {
+          dropdown.innerHTML = "";
+          dropdown.classList.remove("show");
+          activeIdx = -1;
+          return;
+        }
+
+        dropdown.innerHTML = matches.map((item, idx) =>
+          `<div class="suggest-item ${idx === activeIdx ? 'active' : ''}" data-idx="${idx}" data-val="${item.replace(/"/g, '&quot;')}">${item}</div>`
+        ).join("");
+        dropdown.classList.add("show");
+      }
+
+      function hideDropdown() {
+        dropdown.classList.remove("show");
+        dropdown.innerHTML = "";
+        activeIdx = -1;
+      }
+
+      function selectItem(val) {
+        input.value = val;
+        const sIdx = inspectedTarget.sIdx;
+        const cy = inspectedTarget.cy;
+        const key = `${sIdx}_cy${cy}`;
+        if (!state.cyclesData[key]) state.cyclesData[key] = { L: "", ti: "", F: "", nx: "" };
+        state.cyclesData[key].nx = val;
+        const td = document.getElementById(`cell_${sIdx}_cy${cy}_nx`);
+        if (td) td.textContent = val;
+        saveState();
+
+        hideDropdown();
+        const sideValL = document.getElementById("sideValL");
+        if (sideValL) sideValL.focus();
+      }
+
+      input.addEventListener("focus", () => {
+        activeIdx = -1;
+        renderDropdown(input.value);
+      });
+
+      input.addEventListener("input", (e) => {
+        activeIdx = -1;
+        renderDropdown(e.target.value);
+      });
+
+      input.addEventListener("keydown", (e) => {
+        const isShowing = dropdown.classList.contains("show");
+        const items = dropdown.querySelectorAll(".suggest-item");
+
+        if (e.key === "ArrowDown") {
+          if (isShowing && items.length > 0) {
+            e.preventDefault();
+            activeIdx = (activeIdx + 1) % items.length;
+            items.forEach((it, idx) => it.classList.toggle("active", idx === activeIdx));
+            items[activeIdx]?.scrollIntoView({ block: "nearest" });
+          } else {
+            renderDropdown(input.value);
+          }
+        } else if (e.key === "ArrowUp") {
+          if (isShowing && items.length > 0) {
+            e.preventDefault();
+            activeIdx = (activeIdx - 1 + items.length) % items.length;
+            items.forEach((it, idx) => it.classList.toggle("active", idx === activeIdx));
+            items[activeIdx]?.scrollIntoView({ block: "nearest" });
+          }
+        } else if (e.key === "Enter") {
+          if (isShowing && activeIdx >= 0 && items[activeIdx]) {
+            e.preventDefault();
+            e.stopPropagation();
+            selectItem(items[activeIdx].dataset.val);
+          } else {
+            hideDropdown();
+            const sideValL = document.getElementById("sideValL");
+            if (sideValL) {
+              sideValL.focus();
+              sideValL.select();
+            }
+          }
+        } else if (e.key === "Escape") {
+          hideDropdown();
+        }
+      });
+
+      dropdown.addEventListener("mousedown", (e) => {
+        const item = e.target.closest(".suggest-item");
+        if (item && item.dataset.val) {
+          e.preventDefault();
+          selectItem(item.dataset.val);
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target) && (!btnManage || !btnManage.contains(e.target))) {
+          hideDropdown();
+        }
+      });
+    }
+
+    function initLSuggestDropdown() {
+      const input = document.getElementById("sideValL");
+      const dropdown = document.getElementById("lSuggestDropdown");
+      if (!input || !dropdown) return;
+
+      let activeIdx = -1;
+
+      function renderDropdown(filterText = "") {
+        const query = filterText.trim();
+        const matches = query ? L_PRESETS.filter(val => String(val).startsWith(query)) : L_PRESETS;
+
+        if (matches.length === 0) {
+          dropdown.innerHTML = "";
+          dropdown.classList.remove("show");
+          activeIdx = -1;
+          return;
+        }
+
+        dropdown.innerHTML = matches.map((val, idx) =>
+          `<div class="suggest-item ${idx === activeIdx ? 'active' : ''}" data-idx="${idx}" data-val="${val}">${val}</div>`
+        ).join("");
+        dropdown.classList.add("show");
+      }
+
+      function hideDropdown() {
+        dropdown.classList.remove("show");
+        dropdown.innerHTML = "";
+        activeIdx = -1;
+      }
+
+      function selectItem(val) {
+        input.value = val;
+        const sIdx = inspectedTarget.sIdx;
+        const cy = inspectedTarget.cy;
+        const key = `${sIdx}_cy${cy}`;
+        if (!state.cyclesData[key]) state.cyclesData[key] = { L: "", ti: "", F: "", nx: "" };
+        const numVal = parseFloat(val);
+        state.cyclesData[key].L = !isNaN(numVal) ? numVal : val;
+        const td = document.getElementById(`cell_${sIdx}_cy${cy}_L`);
+        if (td) td.textContent = val;
+        saveState();
+
+        hideDropdown();
+        input.blur();
+      }
+
+      input.addEventListener("focus", () => {
+        activeIdx = -1;
+        renderDropdown(input.value);
+      });
+
+      input.addEventListener("input", (e) => {
+        activeIdx = -1;
+        renderDropdown(e.target.value);
+      });
+
+      input.addEventListener("keydown", (e) => {
+        const isShowing = dropdown.classList.contains("show");
+        const items = dropdown.querySelectorAll(".suggest-item");
+
+        if (e.key === "ArrowDown") {
+          if (isShowing && items.length > 0) {
+            e.preventDefault();
+            activeIdx = (activeIdx + 1) % items.length;
+            items.forEach((it, idx) => it.classList.toggle("active", idx === activeIdx));
+            items[activeIdx]?.scrollIntoView({ block: "nearest" });
+          } else {
+            renderDropdown(input.value);
+          }
+        } else if (e.key === "ArrowUp") {
+          if (isShowing && items.length > 0) {
+            e.preventDefault();
+            activeIdx = (activeIdx - 1 + items.length) % items.length;
+            items.forEach((it, idx) => it.classList.toggle("active", idx === activeIdx));
+            items[activeIdx]?.scrollIntoView({ block: "nearest" });
+          }
+        } else if (e.key === "Enter") {
+          if (isShowing && activeIdx >= 0 && items[activeIdx]) {
+            e.preventDefault();
+            e.stopPropagation();
+            selectItem(items[activeIdx].dataset.val);
+          } else {
+            hideDropdown();
+            input.blur();
+          }
+        } else if (e.key === "Escape") {
+          hideDropdown();
+        }
+      });
+
+      dropdown.addEventListener("mousedown", (e) => {
+        const item = e.target.closest(".suggest-item");
+        if (item && item.dataset.val) {
+          e.preventDefault();
+          selectItem(item.dataset.val);
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+          hideDropdown();
+        }
+      });
+    }
+
+    // --- ĐỒNG BỘ 2 CHIỀU GIỮA CÁC Ô NHẬP Ở SIDEBAR VÀ BẢNG EXCEL ---
+    function initSidebarValuesSync() {
+      const sideValNx = document.getElementById("sideValNx");
+      const sideValL = document.getElementById("sideValL");
+      const sideValTi = document.getElementById("sideValTi");
+      const sideValF = document.getElementById("sideValF");
+
+      function syncToTable(type, val, formattedVal) {
+        const sIdx = inspectedTarget.sIdx;
+        const cy = inspectedTarget.cy;
+        const key = `${sIdx}_cy${cy}`;
+        if (!state.cyclesData[key]) state.cyclesData[key] = { L: "", ti: "", F: "", nx: "" };
+        state.cyclesData[key][type] = val;
+
+        const td = document.getElementById(`cell_${sIdx}_cy${cy}_${type}`);
+        if (td) {
+          td.textContent = formattedVal !== undefined ? formattedVal : val;
+        }
+        saveState();
+      }
+
+      if (sideValNx) {
+        sideValNx.addEventListener("input", (e) => {
+          syncToTable('nx', e.target.value);
+        });
+      }
+
+      if (sideValL) {
+        sideValL.addEventListener("input", (e) => {
+          const text = e.target.value.trim().replace(',', '.');
+          const val = text !== "" ? (!isNaN(parseFloat(text)) ? parseFloat(text) : text) : "";
+          syncToTable('L', val);
+        });
+      }
+
+      const btnLockTi = document.getElementById("btnLockTi");
+      const btnLockF = document.getElementById("btnLockF");
+
+      if (btnLockTi && sideValTi) {
+        btnLockTi.addEventListener("click", () => {
+          const isCurrentlyLocked = sideValTi.readOnly;
+          setInputLockState(sideValTi, btnLockTi, !isCurrentlyLocked);
+          if (isCurrentlyLocked) {
+            sideValTi.focus();
+            sideValTi.select();
+          }
+        });
+        sideValTi.addEventListener("blur", () => {
+          setInputLockState(sideValTi, btnLockTi, true);
+        });
+      }
+
+      if (btnLockF && sideValF) {
+        btnLockF.addEventListener("click", () => {
+          const isCurrentlyLocked = sideValF.readOnly;
+          setInputLockState(sideValF, btnLockF, !isCurrentlyLocked);
+          if (isCurrentlyLocked) {
+            sideValF.focus();
+            sideValF.select();
+          }
+        });
+        sideValF.addEventListener("blur", () => {
+          setInputLockState(sideValF, btnLockF, true);
+        });
+      }
+
+      if (sideValTi) {
+        sideValTi.addEventListener("input", (e) => {
+          const text = e.target.value.trim().replace(',', '.');
+          const num = parseFloat(text);
+          const val = text !== "" ? (!isNaN(num) ? num : text) : "";
+          const fmt = (typeof val === 'number') ? formatTiHm(val) : val;
+          syncToTable('ti', val, fmt);
+        });
+        sideValTi.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setInputLockState(sideValTi, btnLockTi, true);
+            sideValTi.blur();
+          }
+        });
+      }
+
+      if (sideValF) {
+        sideValF.addEventListener("input", (e) => {
+          const text = e.target.value.trim().replace(',', '.');
+          const num = parseFloat(text);
+          const val = text !== "" ? (!isNaN(num) ? num : text) : "";
+          const fmt = (typeof val === 'number') ? (Number.isInteger(val) ? val : val.toFixed(1)) : val;
+          syncToTable('F', val, fmt);
+
+          // Nếu người dùng sửa F và có bước kế tiếp đang đo trong cùng chu kỳ, cập nhật lại mốc Start
+          if (typeof val === 'number' && inspectedTarget.cy === state.currentCycle && inspectedTarget.sIdx === state.currentStepIndex - 1) {
+            state.stepStartTime = val;
+            updateCardInfo();
+          }
+        });
+        sideValF.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setInputLockState(sideValF, btnLockF, true);
+            sideValF.blur();
+          }
+        });
+      }
+    }
+
+    // Khởi chạy
+    loadSavedState();
+    renderCycleNav();
+    updateCardInfo();
+    renderTable();
+    updatePresetButtons();
+    initSidebarValuesSync();
+    initNxPresetCrud();
+    initNxSuggestDropdown();
+    initLSuggestDropdown();
+
+  </script>
+</body>
+
+</html>
